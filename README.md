@@ -1,5 +1,5 @@
 # mezo 🍽️
-> Sistema de punto de venta para cafeterías y restaurantes en Colombia
+> Sistema de punto de venta para negocios en Colombia
 
 ## ¿Qué es mezo?
 SaaS POS con IA para negocios colombianos.
