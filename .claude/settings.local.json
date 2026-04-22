@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tailwindcss *)",
+      "WebFetch(domain:api.anthropic.com)"
+    ]
+  }
+}

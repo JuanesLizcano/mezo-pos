@@ -1,13 +1,35 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables CSS del brand kit de mezo */
+:root {
+  --mezo-gold:        #C8903F;
+  --mezo-gold-deep:   #A87528;
+  --mezo-gold-soft:   #E4B878;
+  --mezo-gold-glow:   #F2D9A8;
+  --mezo-ink:         #080706;
+  --mezo-ink-raised:  #141210;
+  --mezo-ink-line:    #2A2520;
+  --mezo-ink-muted:   #3A332C;
+  --mezo-cream:       #F4ECD8;
+  --mezo-cream-dim:   #D9CEB5;
+  --mezo-cream-line:  #E8DDC2;
+  --mezo-verde:       #3DAA68;
+  --mezo-rojo:        #C8573F;
+  --mezo-amber:       #D9A437;
+  --mezo-graphite:    #2B2420;
+  --mezo-stone:       #6B6055;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Base: DM Sans como fuente global, fondo oscuro */
+@layer base {
+  body {
+    background-color: #080706;
+    color: #F4ECD8;
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
