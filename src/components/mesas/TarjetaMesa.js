@@ -1,0 +1,168 @@
+import { useState } from 'react';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { Scissors } from 'lucide-react';
+import { db } from '../../services/firebase';
+import { useAuth } from '../../context/AuthContext';
+import { useTimer } from '../../hooks/useTimer';
+import { formatCOP } from '../../utils/formatters';
+import ModalDivisionCuenta from './ModalDivisionCuenta';
+
+const ESTADOS = {
+  libre:     { label: 'Libre',     color: '#3DAA68', bg: 'rgba(61,170,104,0.12)',  border: 'rgba(61,170,104,0.3)'  },
+  ocupada:   { label: 'Ocupada',   color: '#C8903F', bg: 'rgba(200,144,63,0.12)',  border: 'rgba(200,144,63,0.3)'  },
+  pagando:   { label: 'Pagando',   color: '#D9A437', bg: 'rgba(217,164,55,0.12)',  border: 'rgba(217,164,55,0.3)'  },
+  reservada: { label: 'Reservada', color: '#6B6055', bg: 'rgba(107,96,85,0.15)',   border: 'rgba(107,96,85,0.4)'   },
+};
+
+export default function TarjetaMesa({ mesa }) {
+  const { user }            = useAuth();
+  const estado              = mesa.estado ?? 'libre';
+  const config              = ESTADOS[estado] ?? ESTADOS.libre;
+  const { formatted }       = useTimer(estado !== 'libre' ? mesa.ocupadaEn : null);
+  const mesaRef             = doc(db, 'negocios', user.uid, 'mesas', mesa.id);
+  const [mostrarDivision, setMostrarDivision] = useState(false);
+
+  async function ocupar() {
+    await updateDoc(mesaRef, { estado: 'ocupada', ocupadaEn: serverTimestamp(), total: 0 });
+  }
+
+  async function marcarPagando() {
+    await updateDoc(mesaRef, { estado: 'pagando' });
+  }
+
+  async function liberar() {
+    await updateDoc(mesaRef, { estado: 'libre', ocupadaEn: null, total: null });
+  }
+
+  async function reservar() {
+    await updateDoc(mesaRef, { estado: 'reservada', ocupadaEn: serverTimestamp(), total: null });
+  }
+
+  const estaOcupada = estado === 'ocupada' || estado === 'pagando';
+
+  return (
+    <>
+      <div
+        className="bg-mezo-ink-raised rounded-mezo-xl flex flex-col overflow-hidden transition"
+        style={{ border: `1px solid ${config.border}` }}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 pt-4 pb-2">
+          <div>
+            <p className="text-mezo-stone uppercase tracking-widest font-body" style={{ fontSize: 10 }}>
+              Mesa
+            </p>
+            <p className="text-mezo-cream font-display font-medium leading-none" style={{ fontSize: 32 }}>
+              {mesa.numero}
+            </p>
+            {mesa.nombre && mesa.nombre !== `Mesa ${mesa.numero}` && (
+              <p className="text-mezo-stone font-body mt-0.5" style={{ fontSize: 11 }}>{mesa.nombre}</p>
+            )}
+          </div>
+
+          <span
+            className="text-xs font-semibold font-body px-2.5 py-1 rounded-full"
+            style={{ background: config.bg, color: config.color, border: `1px solid ${config.border}` }}
+          >
+            {config.label}
+          </span>
+        </div>
+
+        {/* Info central */}
+        <div className="flex-1 px-4 pb-3 flex flex-col justify-end gap-1">
+          {estaOcupada && mesa.ocupadaEn && (
+            <div className="flex items-center justify-between">
+              <span className="text-mezo-stone font-body" style={{ fontSize: 12 }}>Tiempo</span>
+              <span className="font-mono text-mezo-cream-dim font-medium" style={{ fontSize: 13 }}>
+                {formatted}
+              </span>
+            </div>
+          )}
+          {estaOcupada && mesa.total != null && (
+            <div className="flex items-center justify-between">
+              <span className="text-mezo-stone font-body" style={{ fontSize: 12 }}>Total</span>
+              <span className="font-mono font-bold" style={{ fontSize: 14, color: config.color }}>
+                {formatCOP(mesa.total)}
+              </span>
+            </div>
+          )}
+          {estado === 'reservada' && (
+            <p className="text-mezo-stone font-body" style={{ fontSize: 12 }}>Reservada</p>
+          )}
+          {estado === 'libre' && (
+            <p className="text-mezo-stone font-body" style={{ fontSize: 12 }}>Disponible</p>
+          )}
+        </div>
+
+        {/* Acciones */}
+        <div className="border-t px-3 py-2.5 flex gap-1.5" style={{ borderColor: config.border }}>
+          {estado === 'libre' && (
+            <>
+              <ActionBtn onClick={ocupar}   color={ESTADOS.ocupada.color}   label="Ocupar"   flex />
+              <ActionBtn onClick={reservar} color={ESTADOS.reservada.color} label="Reservar" flex />
+            </>
+          )}
+          {estado === 'ocupada' && (
+            <>
+              {/* Dividir cuenta — solo visible si hay total registrado */}
+              {mesa.total > 0 && (
+                <ActionBtn
+                  onClick={() => setMostrarDivision(true)}
+                  color="#6B9ED4"
+                  label={<span className="flex items-center gap-1 justify-center"><Scissors size={10} />Dividir</span>}
+                  flex
+                />
+              )}
+              <ActionBtn onClick={marcarPagando} color={ESTADOS.pagando.color} label="Pagando" flex />
+              <ActionBtn onClick={liberar}       color="#C8573F"               label="Liberar" flex />
+            </>
+          )}
+          {estado === 'pagando' && (
+            <>
+              {mesa.total > 0 && (
+                <ActionBtn
+                  onClick={() => setMostrarDivision(true)}
+                  color="#6B9ED4"
+                  label={<span className="flex items-center gap-1 justify-center"><Scissors size={10} />Dividir</span>}
+                  flex
+                />
+              )}
+              <ActionBtn onClick={liberar} color={ESTADOS.libre.color} label="Liberar mesa" flex />
+            </>
+          )}
+          {estado === 'reservada' && (
+            <>
+              <ActionBtn onClick={ocupar}  color={ESTADOS.ocupada.color} label="Sentar"    flex />
+              <ActionBtn onClick={liberar} color="#C8573F"               label="Cancelar"  flex />
+            </>
+          )}
+        </div>
+      </div>
+
+      {mostrarDivision && (
+        <ModalDivisionCuenta
+          mesa={mesa}
+          onCerrar={() => setMostrarDivision(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function ActionBtn({ onClick, color, label, flex }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`${flex ? 'flex-1' : ''} py-1.5 rounded-mezo-sm text-xs font-semibold font-body transition`}
+      style={{
+        background: `${color}18`,
+        color,
+        border: `1px solid ${color}40`,
+      }}
+      onMouseEnter={e => { e.currentTarget.style.background = `${color}30`; }}
+      onMouseLeave={e => { e.currentTarget.style.background = `${color}18`; }}
+    >
+      {label}
+    </button>
+  );
+}

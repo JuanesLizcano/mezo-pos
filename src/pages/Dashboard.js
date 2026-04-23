@@ -11,7 +11,7 @@ const MODULOS = [
   { titulo: 'Empleados',   descripcion: 'Roles y turnos',          emoji: '👥', ruta: '/empleados' },
 ];
 
-const DISPONIBLES = ['/productos', '/pos'];
+const DISPONIBLES = ['/productos', '/pos', '/mesas', '/cocina', '/reportes', '/empleados'];
 
 export default function Dashboard() {
   const { negocio } = useAuth();

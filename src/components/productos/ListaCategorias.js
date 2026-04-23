@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { Pencil, Trash2, Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useCategorias } from '../../hooks/useCategorias';
@@ -16,11 +17,12 @@ export default function ListaCategorias() {
   async function handleEliminar(cat) {
     const tieneProductos = productos.some((p) => p.categoriaId === cat.id);
     if (tieneProductos) {
-      alert(`"${cat.nombre}" tiene productos. Muévelos o elimínalos primero.`);
+      toast.error(`"${cat.nombre}" tiene productos. Muévelos o elimínalos primero.`);
       return;
     }
     if (!window.confirm(`¿Eliminar la categoría "${cat.nombre}"?`)) return;
     await deleteDoc(doc(db, 'negocios', user.uid, 'categorias', cat.id));
+    toast.success(`Categoría "${cat.nombre}" eliminada.`);
   }
 
   if (loading) return <Spinner />;

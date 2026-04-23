@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '../services/firebase';
+import { auth, db } from '../services/firebase';
 import MezoWordmark from '../components/brand/MezoWordmark';
 
 const SLOGANS = [
@@ -19,11 +20,9 @@ function useSloganRotator(interval = 3000) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      // Fade out
       setVisible(false);
       setTimeout(() => {
         setIndex((i) => (i + 1) % SLOGANS.length);
-        // Fade in
         setVisible(true);
       }, 400);
     }, interval);
@@ -41,6 +40,9 @@ const ERRORES = {
   'auth/too-many-requests':    'Demasiados intentos. Espera un momento.',
 };
 
+const MAX_INTENTOS     = 5;
+const BLOQUEO_MS       = 5 * 60 * 1000; // 5 minutos
+
 export default function Login() {
   const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
@@ -48,8 +50,35 @@ export default function Login() {
   const [loading, setLoading]       = useState(false);
   const [resetMsg, setResetMsg]     = useState('');
   const [resetLoading, setResetLoading] = useState(false);
+
+  // Rate limiting
+  const [intentosFallidos, setIntentosFallidos] = useState(0);
+  const [bloqueadoHasta, setBloqueadoHasta]     = useState(null);
+  const [segundosRestantes, setSegundosRestantes] = useState(0);
+  const intervaloRef = useRef(null);
+
   const navigate                    = useNavigate();
   const { slogan, visible }         = useSloganRotator(3000);
+
+  const estaBloqueado = bloqueadoHasta && Date.now() < bloqueadoHasta;
+
+  // Countdown visual del bloqueo
+  useEffect(() => {
+    if (estaBloqueado) {
+      intervaloRef.current = setInterval(() => {
+        const restante = Math.ceil((bloqueadoHasta - Date.now()) / 1000);
+        if (restante <= 0) {
+          setSegundosRestantes(0);
+          setBloqueadoHasta(null);
+          setIntentosFallidos(0);
+          clearInterval(intervaloRef.current);
+        } else {
+          setSegundosRestantes(restante);
+        }
+      }, 1000);
+    }
+    return () => clearInterval(intervaloRef.current);
+  }, [estaBloqueado, bloqueadoHasta]);
 
   async function handleReset() {
     if (!email) { setResetMsg('Ingresa tu correo primero.'); return; }
@@ -67,13 +96,41 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (estaBloqueado) return;
     setError('');
     setLoading(true);
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      setIntentosFallidos(0);
+      setBloqueadoHasta(null);
+
+      // Guardar log de acceso en Firestore
+      try {
+        await addDoc(collection(db, 'negocios', cred.user.uid, 'accesos'), {
+          uid:       cred.user.uid,
+          email:     cred.user.email,
+          timestamp: serverTimestamp(),
+          userAgent: navigator.userAgent,
+        });
+      } catch {
+        // El log de acceso no es crítico, no bloquear el login si falla
+      }
+
       navigate('/dashboard');
     } catch (err) {
-      setError(ERRORES[err.code] || 'Ocurrió un error. Intenta de nuevo.');
+      const nuevosIntentos = intentosFallidos + 1;
+      setIntentosFallidos(nuevosIntentos);
+
+      if (nuevosIntentos >= MAX_INTENTOS) {
+        setBloqueadoHasta(Date.now() + BLOQUEO_MS);
+        setError(`Demasiados intentos fallidos. Espera 5 minutos.`);
+      } else {
+        setError(
+          ERRORES[err.code] ||
+          `Ocurrió un error. Intento ${nuevosIntentos} de ${MAX_INTENTOS}.`
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -94,7 +151,7 @@ export default function Login() {
               marginTop: 10,
               height: 22,
               opacity: visible ? 1 : 0,
-              transition: 'opacity 0.4s ease',
+              transition: 'opacity 0.1s ease',
             }}
           >
             {slogan}
@@ -114,6 +171,7 @@ export default function Login() {
               value={email}
               onChange={setEmail}
               required
+              disabled={estaBloqueado}
             />
             <Campo
               label="Contraseña"
@@ -122,18 +180,41 @@ export default function Login() {
               value={password}
               onChange={setPassword}
               required
+              disabled={estaBloqueado}
             />
 
+            {/* Indicador de intentos */}
+            {intentosFallidos > 0 && intentosFallidos < MAX_INTENTOS && (
+              <p className="text-mezo-stone text-xs font-body">
+                Intento {intentosFallidos} de {MAX_INTENTOS}. Tras {MAX_INTENTOS} se bloqueará 5 minutos.
+              </p>
+            )}
+
             {error && (
-              <p className="text-mezo-rojo text-sm bg-mezo-rojo/10 border border-mezo-rojo/30 rounded-mezo-md px-4 py-2">
+              <p className="text-mezo-rojo text-sm bg-mezo-rojo/10 border border-mezo-rojo/30 rounded-mezo-md px-4 py-2 font-body">
                 {error}
               </p>
             )}
 
+            {/* Bloqueo activo */}
+            {estaBloqueado && (
+              <div className="bg-mezo-rojo/10 border border-mezo-rojo/30 rounded-mezo-md px-4 py-3 text-center">
+                <p className="text-mezo-rojo text-sm font-semibold font-body">
+                  🔒 Formulario bloqueado
+                </p>
+                <p className="text-mezo-stone text-xs font-body mt-1">
+                  Disponible en{' '}
+                  <span className="font-mono font-bold text-mezo-cream">
+                    {Math.floor(segundosRestantes / 60)}:{String(segundosRestantes % 60).padStart(2, '0')}
+                  </span>
+                </p>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-mezo-gold hover:bg-mezo-gold-deep disabled:opacity-50 text-mezo-ink font-semibold py-3 rounded-mezo-md text-sm transition mt-2"
+              disabled={loading || estaBloqueado}
+              className="w-full bg-mezo-gold hover:bg-mezo-gold-deep disabled:opacity-50 text-mezo-ink font-semibold py-3 rounded-mezo-md text-sm transition mt-2 font-body"
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
@@ -142,13 +223,13 @@ export default function Login() {
               <button
                 type="button"
                 onClick={handleReset}
-                disabled={resetLoading}
+                disabled={resetLoading || estaBloqueado}
                 className="text-xs text-mezo-gold hover:text-mezo-gold-soft transition disabled:opacity-50 font-body"
               >
                 {resetLoading ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
               </button>
               {resetMsg && (
-                <p className="text-xs text-mezo-stone mt-1.5">{resetMsg}</p>
+                <p className="text-xs text-mezo-stone mt-1.5 font-body">{resetMsg}</p>
               )}
             </div>
           </form>
@@ -165,10 +246,10 @@ export default function Login() {
   );
 }
 
-function Campo({ label, type, placeholder, value, onChange, required }) {
+function Campo({ label, type, placeholder, value, onChange, required, disabled }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-mezo-cream-dim uppercase tracking-widest mb-2">
+      <label className="block text-xs font-medium text-mezo-cream-dim uppercase tracking-widest mb-2 font-body">
         {label}
       </label>
       <input
@@ -177,7 +258,8 @@ function Campo({ label, type, placeholder, value, onChange, required }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body"
+        disabled={disabled}
+        className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body disabled:opacity-50"
       />
     </div>
   );

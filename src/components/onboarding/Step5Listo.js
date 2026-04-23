@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, setDoc, collection, writeBatch, serverTimestamp } from 'firebase/firestore';
+import * as Sentry from '@sentry/react';
+import { doc, collection, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 
@@ -41,7 +42,7 @@ export default function Step5Listo({ data, prev }) {
       await batch.commit();
       navigate('/dashboard');
     } catch (err) {
-      console.error(err);
+      Sentry.captureException(err);
       setError('Error al guardar. Intenta de nuevo.');
       setLoading(false);
     }

@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cada negocio es una isla: solo el propietario (auth.uid == negocioId)
+    // puede leer o escribir sus datos y todas sus subcolecciones.
+    match /negocios/{negocioId} {
+      allow read, write: if esPropietario(negocioId);
+
+      match /{subcol}/{docId} {
+        allow read, write: if esPropietario(negocioId);
+      }
+    }
+
+    // Rechaza todo lo que no coincida con el patrón anterior
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+
+  function esPropietario(negocioId) {
+    return request.auth != null && request.auth.uid == negocioId;
+  }
+}

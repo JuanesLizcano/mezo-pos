@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ImagePlus, X } from 'lucide-react';
+import * as Sentry from '@sentry/react';
+import toast from 'react-hot-toast';
 import { db, storage } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useCategorias } from '../../hooks/useCategorias';
@@ -103,10 +105,11 @@ export default function FormProducto({ producto = null, onClose }) {
         const url = await subirImagen(user.uid, docRef.id);
         if (url) await updateDoc(docRef, { imagen: url });
       }
+      toast.success(esEdicion ? 'Producto actualizado ✓' : 'Producto creado ✓');
       onClose();
     } catch (err) {
-      console.error(err);
-      setError('Error al guardar el producto. Intenta de nuevo.');
+      Sentry.captureException(err);
+      toast.error('Error al guardar el producto. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
