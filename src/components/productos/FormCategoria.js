@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../services/firebase';
+import toast from 'react-hot-toast';
+import { createCategoria, updateCategoria } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../ui/Modal';
 
@@ -8,11 +8,11 @@ const EMOJIS = ['🍕','🍔','🥗','☕','🧃','🍰','🌮','🍜','🥩','�
                  '🥪','🍣','🥤','🍟','🧁','🍦','🥐','🍳','🥞','🍱'];
 
 export default function FormCategoria({ categoria = null, totalCategorias, onClose }) {
-  const { user }           = useAuth();
-  const [nombre, setNombre] = useState(categoria?.nombre ?? '');
-  const [emoji, setEmoji]   = useState(categoria?.emoji ?? '🍽️');
+  const { bumpVersion }       = useAuth();
+  const [nombre, setNombre]   = useState(categoria?.nombre ?? '');
+  const [emoji, setEmoji]     = useState(categoria?.emoji ?? '🍽️');
   const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState('');
+  const [error, setError]     = useState('');
   const esEdicion = !!categoria;
 
   async function handleSubmit(e) {
@@ -23,12 +23,12 @@ export default function FormCategoria({ categoria = null, totalCategorias, onClo
     try {
       const base = { nombre: nombre.trim(), emoji };
       if (esEdicion) {
-        await updateDoc(doc(db, 'negocios', user.uid, 'categorias', categoria.id), base);
+        await updateCategoria(categoria.id, base);
       } else {
-        await addDoc(collection(db, 'negocios', user.uid, 'categorias'), {
-          ...base, orden: totalCategorias, creadaEn: serverTimestamp(),
-        });
+        await createCategoria({ ...base, orden: totalCategorias });
       }
+      bumpVersion();
+      toast.success(esEdicion ? 'Categoría actualizada ✓' : 'Categoría creada ✓');
       onClose();
     } catch {
       setError('Error al guardar. Intenta de nuevo.');

@@ -1,25 +1,30 @@
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { ref, deleteObject } from 'firebase/storage';
 import { Pencil, Trash2 } from 'lucide-react';
-import { db, storage } from '../../services/firebase';
+import toast from 'react-hot-toast';
+import { updateProducto, deleteProducto } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { formatCOP } from '../../utils/formatters';
 
 export default function TarjetaProducto({ producto, categoriaNombre, categoriaEmoji, onEditar }) {
-  const { user } = useAuth();
+  const { bumpVersion } = useAuth();
 
   async function toggleDisponible() {
-    await updateDoc(doc(db, 'negocios', user.uid, 'productos', producto.id), {
-      disponible: !producto.disponible,
-    });
+    try {
+      await updateProducto(producto.id, { disponible: !producto.disponible });
+      bumpVersion();
+    } catch {
+      toast.error('Error al actualizar el producto.');
+    }
   }
 
   async function handleEliminar() {
     if (!window.confirm(`¿Eliminar "${producto.nombre}"?`)) return;
-    if (producto.imagen) {
-      try { await deleteObject(ref(storage, `negocios/${user.uid}/productos/${producto.id}`)); } catch (_) {}
+    try {
+      await deleteProducto(producto.id);
+      bumpVersion();
+      toast.success(`"${producto.nombre}" eliminado.`);
+    } catch {
+      toast.error('Error al eliminar el producto.');
     }
-    await deleteDoc(doc(db, 'negocios', user.uid, 'productos', producto.id));
   }
 
   return (

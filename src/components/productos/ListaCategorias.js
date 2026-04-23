@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import { deleteDoc, doc } from 'firebase/firestore';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { db } from '../../services/firebase';
+import { deleteCategoria } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { useCategorias } from '../../hooks/useCategorias';
 import { useProductos } from '../../hooks/useProductos';
 import FormCategoria from './FormCategoria';
 
 export default function ListaCategorias() {
-  const { user }             = useAuth();
-  const { categorias, loading } = useCategorias();
-  const { productos }        = useProductos();
-  const [modal, setModal]    = useState(null);
+  const { bumpVersion }          = useAuth();
+  const { categorias, loading }  = useCategorias();
+  const { productos }            = useProductos();
+  const [modal, setModal]        = useState(null);
 
   async function handleEliminar(cat) {
     const tieneProductos = productos.some((p) => p.categoriaId === cat.id);
@@ -21,8 +20,13 @@ export default function ListaCategorias() {
       return;
     }
     if (!window.confirm(`¿Eliminar la categoría "${cat.nombre}"?`)) return;
-    await deleteDoc(doc(db, 'negocios', user.uid, 'categorias', cat.id));
-    toast.success(`Categoría "${cat.nombre}" eliminada.`);
+    try {
+      await deleteCategoria(cat.id);
+      bumpVersion();
+      toast.success(`Categoría "${cat.nombre}" eliminada.`);
+    } catch (err) {
+      toast.error(err.message || 'Error al eliminar la categoría.');
+    }
   }
 
   if (loading) return <Spinner />;
