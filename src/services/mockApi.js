@@ -176,13 +176,20 @@ function usuarioActual() {
 
 export async function login(email, password) {
   await delay();
-  const user = DB.users.find(u => u.email === email && u.password === password);
-  if (!user) throw Object.assign(new Error('Correo o contraseña incorrectos.'), { status: 401 });
 
-  DB.currentUserId = user.id;
-  const token  = crearToken(user);
-  const negocio = user.negocioId ? DB.negocios[user.negocioId] ?? null : null;
-  return { token, user: { uid: user.id, email: user.email }, negocio };
+  // En modo mock acepta cualquier email válido y contraseña ≥ 6 caracteres
+  const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const passValida  = typeof password === 'string' && password.length >= 6;
+  if (!emailValido || !passValida) {
+    throw Object.assign(new Error('Correo o contraseña incorrectos.'), { status: 401 });
+  }
+
+  // Entra siempre como el usuario demo (datos de "Tres Orquídeas")
+  const demoUser = DB.users[0];
+  DB.currentUserId = demoUser.id;
+  const token   = crearToken({ ...demoUser, email });
+  const negocio = DB.negocios[demoUser.negocioId] ?? null;
+  return { token, user: { uid: demoUser.id, email }, negocio };
 }
 
 export async function register(email, password) {
