@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { addDoc, updateDoc, doc, collection } from 'firebase/firestore';
 import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { db } from '../services/firebase';
+import { createEmpleado, updateEmpleado } from '../services';
+import { emailInvitacionEmpleado } from '../services/emails';
 import { useAuth } from '../context/AuthContext';
 import { useEmpleados } from '../hooks/useEmpleados';
 import Navbar from '../components/layout/Navbar';
@@ -10,9 +10,9 @@ import FormEmpleado from '../components/empleados/FormEmpleado';
 import TarjetaEmpleado from '../components/empleados/TarjetaEmpleado';
 
 export default function Empleados() {
-  const { user }                    = useAuth();
+  const { bumpVersion, negocio }    = useAuth();
   const { empleados, loading }      = useEmpleados();
-  const [modalAbierto, setModal]    = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando]     = useState(null);
   const [guardando, setGuardando]   = useState(false);
 
@@ -20,7 +20,7 @@ export default function Empleados() {
     setGuardando(true);
     try {
       if (editando) {
-        await updateDoc(doc(db, 'negocios', user.uid, 'empleados', editando.id), {
+        await updateEmpleado(editando.id, {
           nombre: datos.nombre,
           correo: datos.correo,
           pin:    datos.pin,
@@ -28,14 +28,14 @@ export default function Empleados() {
         });
         toast.success('Empleado actualizado ✓');
       } else {
-        await addDoc(collection(db, 'negocios', user.uid, 'empleados'), {
-          ...datos,
-          activo:    true,
-          creadoEn:  new Date(),
-        });
+        const nuevo = await createEmpleado(datos);
         toast.success('Empleado creado ✓');
+        if (datos.correo) {
+          emailInvitacionEmpleado(nuevo ?? datos, negocio ?? {}).catch(() => {});
+        }
       }
-      setModal(false);
+      bumpVersion();
+      setModalAbierto(false);
       setEditando(null);
     } catch {
       toast.error('Error al guardar el empleado. Intenta de nuevo.');
@@ -46,14 +46,13 @@ export default function Empleados() {
 
   async function handleToggleActivo(empleado) {
     const nuevoEstado = empleado.activo !== false ? false : true;
-    await updateDoc(doc(db, 'negocios', user.uid, 'empleados', empleado.id), {
-      activo: nuevoEstado,
-    });
+    await updateEmpleado(empleado.id, { activo: nuevoEstado });
+    bumpVersion();
   }
 
   function abrirEditar(emp) {
     setEditando(emp);
-    setModal(true);
+    setModalAbierto(true);
   }
 
   const activos   = empleados.filter(e => e.activo !== false);
@@ -64,7 +63,6 @@ export default function Empleados() {
       <Navbar />
 
       <main className="flex-1 overflow-y-auto px-8 py-6">
-        {/* Encabezado */}
         <div className="flex items-end justify-between mb-6">
           <div>
             <p className="text-mezo-stone uppercase tracking-widest text-xs mb-1 font-body">Equipo</p>
@@ -73,7 +71,7 @@ export default function Empleados() {
               Empleados
             </h1>
           </div>
-          <button onClick={() => { setEditando(null); setModal(true); }}
+          <button onClick={() => { setEditando(null); setModalAbierto(true); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold text-sm rounded-mezo-md transition font-body">
             <UserPlus size={15} /> Nuevo empleado
           </button>
@@ -85,7 +83,6 @@ export default function Empleados() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Empleados activos */}
             {activos.length > 0 && (
               <div>
                 <p className="text-mezo-stone font-body text-xs uppercase tracking-widest mb-3">
@@ -93,17 +90,12 @@ export default function Empleados() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {activos.map(emp => (
-                    <TarjetaEmpleado
-                      key={emp.id} empleado={emp}
-                      onEditar={abrirEditar}
-                      onToggleActivo={handleToggleActivo}
-                    />
+                    <TarjetaEmpleado key={emp.id} empleado={emp}
+                      onEditar={abrirEditar} onToggleActivo={handleToggleActivo} />
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Empleados inactivos */}
             {inactivos.length > 0 && (
               <div>
                 <p className="text-mezo-stone font-body text-xs uppercase tracking-widest mb-3">
@@ -111,16 +103,12 @@ export default function Empleados() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {inactivos.map(emp => (
-                    <TarjetaEmpleado
-                      key={emp.id} empleado={emp}
-                      onEditar={abrirEditar}
-                      onToggleActivo={handleToggleActivo}
-                    />
+                    <TarjetaEmpleado key={emp.id} empleado={emp}
+                      onEditar={abrirEditar} onToggleActivo={handleToggleActivo} />
                   ))}
                 </div>
               </div>
             )}
-
             {empleados.length === 0 && (
               <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
                 <span style={{ fontSize: 40 }}>👥</span>
@@ -134,7 +122,6 @@ export default function Empleados() {
         )}
       </main>
 
-      {/* Modal crear/editar */}
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
           style={{ background: 'rgba(8,7,6,0.85)' }}>
@@ -145,7 +132,7 @@ export default function Empleados() {
             <FormEmpleado
               inicial={editando}
               onGuardar={handleGuardar}
-              onCancelar={() => { setModal(false); setEditando(null); }}
+              onCancelar={() => { setModalAbierto(false); setEditando(null); }}
               loading={guardando}
             />
           </div>

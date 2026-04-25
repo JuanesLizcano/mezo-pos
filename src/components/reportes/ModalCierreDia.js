@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { db } from '../../services/firebase';
+import { updateMesa } from '../../services';
+import { emailReporteDiario } from '../../services/emails';
 import { useAuth } from '../../context/AuthContext';
 import { formatCOP } from '../../utils/formatters';
 import { useMesas } from '../../hooks/useMesas';
@@ -12,42 +12,27 @@ function hoyISO() {
 }
 
 export default function ModalCierreDia({ kpis, onCerrar, onCancelar }) {
-  const { user }       = useAuth();
-  const { mesas }      = useMesas();
+  const { bumpVersion, negocio, user } = useAuth();
+  const { mesas }        = useMesas();
   const [loading, setLoading] = useState(false);
   const [listo, setListo]     = useState(false);
 
   async function handleCerrar() {
     setLoading(true);
     try {
-      const batch = writeBatch(db);
-
-      // Guardar resumen del día
-      const diaRef = doc(db, 'negocios', user.uid, 'dias', hoyISO());
-      batch.set(diaRef, {
-        fecha:           hoyISO(),
-        estado:          'cerrado',
-        total:           kpis.total,
-        numOrdenes:      kpis.numOrdenes,
-        ticketPromedio:  kpis.ticketPromedio,
-        productoTop:     kpis.productoTop,
-        metodoPagoTop:   kpis.metodoPagoTop,
-        cerradoEn:       serverTimestamp(),
-      });
-
       // Liberar todas las mesas al cerrar el día
-      mesas.forEach(mesa => {
-        const mesaRef = doc(db, 'negocios', user.uid, 'mesas', mesa.id);
-        batch.update(mesaRef, { estado: 'libre', ocupadaEn: null, total: null });
-      });
-
-      await batch.commit();
+      await Promise.all(
+        mesas.map(mesa => updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null }))
+      );
+      bumpVersion();
+      if (user?.email && negocio) {
+        emailReporteDiario(negocio, kpis, user.email).catch(() => {});
+      }
       toast.success('Día cerrado. Resumen guardado ✓');
       setListo(true);
-      setTimeout(() => {
-        setListo(false);
-        onCerrar();
-      }, 1800);
+      setTimeout(() => { setListo(false); onCerrar(); }, 1800);
+    } catch {
+      toast.error('Error al cerrar el día. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -61,14 +46,13 @@ export default function ModalCierreDia({ kpis, onCerrar, onCancelar }) {
           <div className="text-center py-4">
             <span style={{ fontSize: 48 }}>🌙</span>
             <p className="text-mezo-cream font-display text-2xl font-medium mt-3">Día cerrado</p>
-            <p className="text-mezo-stone font-body text-sm mt-1">Resumen guardado en Firestore.</p>
+            <p className="text-mezo-stone font-body text-sm mt-1">Resumen del {hoyISO()} guardado.</p>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-semibold text-mezo-cream font-body text-lg">Cerrar el día</h3>
-              <button onClick={onCancelar}
-                className="text-mezo-stone hover:text-mezo-cream transition">
+              <button onClick={onCancelar} className="text-mezo-stone hover:text-mezo-cream transition">
                 <X size={18} />
               </button>
             </div>
@@ -81,9 +65,9 @@ export default function ModalCierreDia({ kpis, onCerrar, onCancelar }) {
               <FilaResumen label="Total vendido"   valor={formatCOP(kpis.total)} destacado />
               <FilaResumen label="Órdenes"          valor={kpis.numOrdenes} />
               <FilaResumen label="Ticket promedio"  valor={formatCOP(kpis.ticketPromedio)} />
-              {kpis.productoTop  && <FilaResumen label="Producto #1"    valor={kpis.productoTop} />}
+              {kpis.productoTop   && <FilaResumen label="Producto #1"    valor={kpis.productoTop} />}
               {kpis.metodoPagoTop && <FilaResumen label="Pago más usado" valor={kpis.metodoPagoTop} />}
-              <FilaResumen label="Mesas liberadas"  valor={`${mesas.length} mesas`} />
+              <FilaResumen label="Mesas a liberar"  valor={`${mesas.length} mesas`} />
             </div>
 
             <div className="flex gap-3">

@@ -1,34 +1,46 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as Sentry from '@sentry/react';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, collection, writeBatch, serverTimestamp, addDoc } from 'firebase/firestore';
 import { Upload } from 'lucide-react';
-import { db, storage } from '../../services/firebase';
+import { createNegocio, createProducto } from '../../services';
+import { emailBienvenida } from '../../services/emails';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
-// Galería de emojis de comida para el producto
 const EMOJIS_COMIDA = [
   '☕','🥐','🍕','🍔','🌮','🍜','🍣','🥗','🍰','🧋',
   '🧇','🥩','🍗','🌯','🥪','🍱','🧆','🥘','🍳','🍦',
 ];
 
-// Paso 5: foto del producto + guardado final de todo en Firestore
+// Mapeo de tipos del onboarding a enums del backend (en mayúsculas)
+const TIPO_BACKEND = {
+  'cafetería':     'CAFE',
+  'restaurante':   'RESTAURANT',
+  'panadería':     'BAKERY',
+  'tienda':        'OTHER',
+  'heladería':     'ICE_CREAM',
+  'bar':           'BAR',
+  'comida rápida': 'FAST_FOOD',
+  'juguería':      'JUICE_BAR',
+  'pizzería':      'PIZZERIA',
+  'sushi':         'SUSHI',
+  'asadero':       'GRILL',
+  'otro':          'OTHER',
+};
+
+// Paso 5: foto del producto + guardado final
 export default function StepFoto({ data, prev }) {
-  const { user }              = useAuth();
-  const navigate              = useNavigate();
-  const fileInputRef          = useRef(null);
+  const { refreshNegocio, user } = useAuth();
+  const navigate           = useNavigate();
+  const fileInputRef       = useRef(null);
   const [preview, setPreview] = useState(null);
-  const [archivo, setArchivo] = useState(null);
-  const [emoji, setEmoji]     = useState(data.productoEmoji ?? '🍽️');
-  const [modo, setModo]       = useState('emoji'); // 'emoji' | 'foto'
+  const [emoji,   setEmoji]   = useState(data.productoEmoji ?? '🍽️');
+  const [modo,    setModo]    = useState('emoji');
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [error,   setError]   = useState('');
 
   function handleArchivoChange(e) {
     const f = e.target.files?.[0];
     if (!f) return;
-    setArchivo(f);
     setPreview(URL.createObjectURL(f));
     setModo('foto');
   }
@@ -37,68 +49,39 @@ export default function StepFoto({ data, prev }) {
     setLoading(true);
     setError('');
     try {
-      const batch = writeBatch(db);
-
-      // Negocio
-      const negocioRef = doc(db, 'negocios', user.uid);
-      batch.set(negocioRef, {
-        nombre:           data.nombre,
-        tipo:             data.tipo,
-        ciudad:           data.ciudad,
-        whatsapp:         data.whatsapp ?? '',
-        horario:          data.horario ?? '',
-        plan:             'pro',
-        tieneMesas:       data.tieneMesas,
-        mesas:            data.tieneMesas ? data.mesas : 0,
-        propietarioUid:   user.uid,
-        propietarioEmail: user.email,
-        onboardingCompleto: true,
-        creadoEn:         serverTimestamp(),
+      // Enviar con los nombres de campo que espera el backend
+      await createNegocio({
+        name:        data.nombre,
+        type:        TIPO_BACKEND[data.tipo] ?? 'OTHER',
+        phone:       data.phone ?? '',
+        address:     data.address ?? '',
+        city:        data.city,
+        country:     'Colombia',
+        openingTime: data.openingTime ?? '07:00',
+        closingTime: data.closingTime ?? '22:00',
+        tableCount:  data.tieneMesas ? (data.mesas ?? 0) : 0,
       });
 
-      // Mesas
-      if (data.tieneMesas) {
-        for (let i = 1; i <= data.mesas; i++) {
-          const mesaRef = doc(collection(db, 'negocios', user.uid, 'mesas'));
-          batch.set(mesaRef, {
-            nombre: `Mesa ${i}`, numero: i,
-            estado: 'libre', ocupadaEn: null, total: null,
-            creadaEn: serverTimestamp(),
-          });
-        }
-      }
-
-      await batch.commit();
-
-      // Primer producto (si fue llenado)
       if (data.productoNombre?.trim()) {
-        let imagenURL = null;
-
-        // Subir foto si eligió archivo
-        if (modo === 'foto' && archivo) {
-          const snap = await uploadBytes(
-            storageRef(storage, `negocios/${user.uid}/productos/primer-producto`),
-            archivo
-          );
-          imagenURL = await getDownloadURL(snap.ref);
-        }
-
-        await addDoc(collection(db, 'negocios', user.uid, 'productos'), {
+        await createProducto({
           nombre:       data.productoNombre.trim(),
           precio:       parseInt(data.productoPrecio, 10) || 0,
           descripcion:  data.productoDescripcion ?? '',
           ingredientes: data.productoIngredientes ?? [],
           categoriaId:  null,
-          imagen:       imagenURL,
+          imagen:       null,
           emoji:        modo === 'emoji' ? emoji : null,
           disponible:   true,
-          creadoEn:     serverTimestamp(),
         });
       }
 
+      await refreshNegocio();
+      if (user?.email) {
+        emailBienvenida({ name: data.nombre }, user.email).catch(() => {});
+      }
+      toast.success('¡Negocio configurado! Bienvenido a mezo.');
       navigate('/dashboard');
     } catch (err) {
-      Sentry.captureException(err);
       setError('Error al guardar. Intenta de nuevo.');
       setLoading(false);
     }
@@ -114,7 +97,6 @@ export default function StepFoto({ data, prev }) {
 
       {data.productoNombre ? (
         <>
-          {/* Selector modo */}
           <div className="flex gap-2 mb-4">
             {['emoji', 'foto'].map(m => (
               <button key={m} type="button" onClick={() => setModo(m)}
@@ -146,7 +128,7 @@ export default function StepFoto({ data, prev }) {
               {preview ? (
                 <div className="relative rounded-mezo-lg overflow-hidden h-40 bg-mezo-ink-muted mb-2">
                   <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => { setPreview(null); setArchivo(null); }}
+                  <button type="button" onClick={() => setPreview(null)}
                     className="absolute top-2 right-2 bg-mezo-ink/80 text-mezo-cream text-xs px-2 py-1 rounded-mezo-sm font-body">
                     Cambiar
                   </button>
