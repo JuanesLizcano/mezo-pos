@@ -4,6 +4,18 @@ import { updateProducto, deleteProducto } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { formatCOP } from '../../utils/formatters';
 
+// Verde ≥ 65% · Ámbar 45–64% · Rojo < 45%
+function MargenBadge({ precio, costo }) {
+  const margen = Math.round(((precio - costo) / precio) * 100);
+  const color  = margen >= 65 ? '#3DAA68' : margen >= 45 ? '#D9A437' : '#C8573F';
+  return (
+    <span className="text-xs px-2 py-0.5 rounded-full font-body font-medium"
+      style={{ background: `${color}18`, color, border: `1px solid ${color}40` }}>
+      {margen}% margen
+    </span>
+  );
+}
+
 export default function TarjetaProducto({ producto, categoriaNombre, categoriaEmoji, onEditar }) {
   const { bumpVersion } = useAuth();
 
@@ -76,11 +88,16 @@ export default function TarjetaProducto({ producto, categoriaNombre, categoriaEm
           <span className="font-bold text-mezo-gold font-mono text-base">
             {formatCOP(producto.precio)}
           </span>
-          {categoriaNombre && (
-            <span className="text-xs px-2 py-0.5 rounded-full font-body"
-              style={{ background: 'rgba(200,144,63,0.12)', color: '#E4B878' }}>
-              {categoriaEmoji} {categoriaNombre}
-            </span>
+          {producto.costo > 0 ? (
+            // Muestra margen% si el producto tiene costo configurado
+            <MargenBadge precio={producto.precio} costo={producto.costo} />
+          ) : (
+            categoriaNombre && (
+              <span className="text-xs px-2 py-0.5 rounded-full font-body"
+                style={{ background: 'rgba(200,144,63,0.12)', color: '#E4B878' }}>
+                {categoriaEmoji} {categoriaNombre}
+              </span>
+            )
           )}
         </div>
 

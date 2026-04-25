@@ -1,31 +1,32 @@
-// Mock API — simula el backend con datos en memoria
+// Mock API — simula el backend de Manuel con datos en memoria
 // Negocio demo: "Tres Orquídeas" (cafetería en Medellín)
+// Los nombres de campos coinciden con el backend real para que
+// cambiar REACT_APP_USE_MOCK=false no requiera tocar el frontend.
 
 function delay() {
   return new Promise(r => setTimeout(r, 300 + Math.random() * 300));
 }
 
-let _idCounter   = 1000;
-let _facCounter  = 87;
-function nextId()      { return 'mock-' + (++_idCounter); }
-function nextFactura() { return ++_facCounter; }
+let _idCounter  = 1000;
+let _saleCounter = 87;
+function nextId()   { return 'mock-' + (++_idCounter); }
+function nextSale() { return ++_saleCounter; }
 
 // ─── Datos iniciales ────────────────────────────────────────────────────────
 
+// Campos del negocio alineados con el backend de Manuel
 const NEGOCIO_DEMO = {
-  id: 'neg-001',
-  nombre: 'Tres Orquídeas',
-  tipo: 'cafetería',
-  ciudad: 'Medellín',
-  direccion: 'El Poblado, Cra 37 #10A-45',
-  whatsapp: '3121234567',
-  horario: '7:00 a.m. – 10:00 p.m.',
-  plan: 'pro',
-  tieneMesas: true,
-  mesas: 6,
-  onboardingCompleto: true,
-  propietarioEmail: 'admin@tresorquideas.com',
-  creadoEn: new Date('2025-01-15'),
+  id:          'neg-001',
+  name:        'Tres Orquídeas',
+  type:        'CAFE',
+  phone:       '3121234567',
+  address:     'El Poblado, Cra 37 #10A-45',
+  city:        'Medellín',
+  country:     'Colombia',
+  openingTime: '07:00',
+  closingTime: '22:00',
+  tableCount:  6,
+  isOpen:      true,
 };
 
 const CATEGORIAS_INIT = [
@@ -36,29 +37,30 @@ const CATEGORIAS_INIT = [
 ];
 
 const PRODUCTOS_INIT = [
-  { id: 'p-01',  nombre: 'Café tinto',         precio: 3000,  categoriaId: 'cat-1', emoji: '☕',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-02',  nombre: 'Café americano',      precio: 4500,  categoriaId: 'cat-1', emoji: '☕',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-03',  nombre: 'Café con leche',      precio: 5500,  categoriaId: 'cat-1', emoji: '🥛',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-04',  nombre: 'Capuchino',           precio: 6500,  categoriaId: 'cat-1', emoji: '☕',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-05',  nombre: 'Latte de vainilla',   precio: 7000,  categoriaId: 'cat-1', emoji: '🥛',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-06',  nombre: 'Chocolate caliente',  precio: 5500,  categoriaId: 'cat-1', emoji: '🍫',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-07',  nombre: 'Agua de panela',      precio: 3000,  categoriaId: 'cat-1', emoji: '🍵',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-08',  nombre: 'Jugo de lulo',        precio: 5000,  categoriaId: 'cat-2', emoji: '🍋',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-09',  nombre: 'Jugo de maracuyá',    precio: 5500,  categoriaId: 'cat-2', emoji: '🟡',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-10',  nombre: 'Jugo de mora',        precio: 5000,  categoriaId: 'cat-2', emoji: '🫐',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-11',  nombre: 'Limonada de coco',    precio: 6000,  categoriaId: 'cat-2', emoji: '🥥',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-12',  nombre: 'Agua mineral',        precio: 2500,  categoriaId: 'cat-2', emoji: '💧',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-13',  nombre: 'Croissant de jamón',  precio: 4500,  categoriaId: 'cat-3', emoji: '🥐',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-14',  nombre: 'Pan de bono',         precio: 2500,  categoriaId: 'cat-3', emoji: '🧀',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-15',  nombre: 'Empanada de pipián',  precio: 3500,  categoriaId: 'cat-3', emoji: '🥟',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-16',  nombre: 'Arepa con queso',     precio: 5000,  categoriaId: 'cat-3', emoji: '🫓',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-17',  nombre: 'Buñuelo',             precio: 2000,  categoriaId: 'cat-3', emoji: '🍩',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-18',  nombre: 'Changua',             precio: 8000,  categoriaId: 'cat-4', emoji: '🍲',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-19',  nombre: 'Calentado paisa',     precio: 12000, categoriaId: 'cat-4', emoji: '🍳',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-20',  nombre: 'Sopa del día',        precio: 14000, categoriaId: 'cat-4', emoji: '🥣',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-21',  nombre: 'Ensalada del chef',   precio: 15000, categoriaId: 'cat-4', emoji: '🥗',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-22',  nombre: 'Sancocho de pollo',   precio: 18000, categoriaId: 'cat-4', emoji: '🍗',  disponible: true, creadoEn: new Date('2025-01-15') },
-  { id: 'p-23',  nombre: 'Bandeja paisa mini',  precio: 25000, categoriaId: 'cat-4', emoji: '🍽️', disponible: true, creadoEn: new Date('2025-01-15') },
+  // costo = costo real de producción en COP (ingredientes + empaque)
+  { id: 'p-01',  nombre: 'Café tinto',         precio: 3000,  costo: 700,   categoriaId: 'cat-1', emoji: '☕',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-02',  nombre: 'Café americano',      precio: 4500,  costo: 1100,  categoriaId: 'cat-1', emoji: '☕',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-03',  nombre: 'Café con leche',      precio: 5500,  costo: 1800,  categoriaId: 'cat-1', emoji: '🥛',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-04',  nombre: 'Capuchino',           precio: 6500,  costo: 2200,  categoriaId: 'cat-1', emoji: '☕',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-05',  nombre: 'Latte de vainilla',   precio: 7000,  costo: 2600,  categoriaId: 'cat-1', emoji: '🥛',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-06',  nombre: 'Chocolate caliente',  precio: 5500,  costo: 2100,  categoriaId: 'cat-1', emoji: '🍫',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-07',  nombre: 'Agua de panela',      precio: 3000,  costo: 400,   categoriaId: 'cat-1', emoji: '🍵',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-08',  nombre: 'Jugo de lulo',        precio: 5000,  costo: 1600,  categoriaId: 'cat-2', emoji: '🍋',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-09',  nombre: 'Jugo de maracuyá',    precio: 5500,  costo: 1800,  categoriaId: 'cat-2', emoji: '🟡',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-10',  nombre: 'Jugo de mora',        precio: 5000,  costo: 1700,  categoriaId: 'cat-2', emoji: '🫐',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-11',  nombre: 'Limonada de coco',    precio: 6000,  costo: 2200,  categoriaId: 'cat-2', emoji: '🥥',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-12',  nombre: 'Agua mineral',        precio: 2500,  costo: 800,   categoriaId: 'cat-2', emoji: '💧',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-13',  nombre: 'Croissant de jamón',  precio: 4500,  costo: 2000,  categoriaId: 'cat-3', emoji: '🥐',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-14',  nombre: 'Pan de bono',         precio: 2500,  costo: 800,   categoriaId: 'cat-3', emoji: '🧀',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-15',  nombre: 'Empanada de pipián',  precio: 3500,  costo: 1400,  categoriaId: 'cat-3', emoji: '🥟',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-16',  nombre: 'Arepa con queso',     precio: 5000,  costo: 1900,  categoriaId: 'cat-3', emoji: '🫓',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-17',  nombre: 'Buñuelo',             precio: 2000,  costo: 600,   categoriaId: 'cat-3', emoji: '🍩',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-18',  nombre: 'Changua',             precio: 8000,  costo: 3500,  categoriaId: 'cat-4', emoji: '🍲',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-19',  nombre: 'Calentado paisa',     precio: 12000, costo: 5200,  categoriaId: 'cat-4', emoji: '🍳',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-20',  nombre: 'Sopa del día',        precio: 14000, costo: 6800,  categoriaId: 'cat-4', emoji: '🥣',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-21',  nombre: 'Ensalada del chef',   precio: 15000, costo: 5500,  categoriaId: 'cat-4', emoji: '🥗',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-22',  nombre: 'Sancocho de pollo',   precio: 18000, costo: 9000,  categoriaId: 'cat-4', emoji: '🍗',  disponible: true, creadoEn: new Date('2025-01-15') },
+  { id: 'p-23',  nombre: 'Bandeja paisa mini',  precio: 25000, costo: 11000, categoriaId: 'cat-4', emoji: '🍽️', disponible: true, creadoEn: new Date('2025-01-15') },
 ];
 
 const MESAS_INIT = [
@@ -76,100 +78,126 @@ const EMPLEADOS_INIT = [
   { id: 'emp-3', nombre: 'Carlos Muñoz',    correo: 'carlos@tresorquideas.com', pin: '3456', roles: ['mesero'],  activo: true, creadoEn: new Date('2025-02-01') },
 ];
 
-// Genera órdenes históricas para los reportes
+// Genera órdenes históricas para los reportes (ya con campos del backend)
 function generarOrdenesDemo() {
   const ordenes = [];
   const hoy = new Date();
 
+  // paymentMethod usa los enums del backend en mayúsculas
   const plantillas = [
-    { lineas: [{ productoId: 'p-02', nombre: 'Café americano', precio: 4500, cantidad: 2, subtotal: 9000 }, { productoId: 'p-13', nombre: 'Croissant de jamón', precio: 4500, cantidad: 2, subtotal: 9000 }], metodo: 'efectivo' },
-    { lineas: [{ productoId: 'p-04', nombre: 'Capuchino', precio: 6500, cantidad: 3, subtotal: 19500 }, { productoId: 'p-16', nombre: 'Arepa con queso', precio: 5000, cantidad: 2, subtotal: 10000 }], metodo: 'nequi' },
-    { lineas: [{ productoId: 'p-18', nombre: 'Changua', precio: 8000, cantidad: 2, subtotal: 16000 }, { productoId: 'p-01', nombre: 'Café tinto', precio: 3000, cantidad: 2, subtotal: 6000 }], metodo: 'datafono' },
-    { lineas: [{ productoId: 'p-22', nombre: 'Sancocho de pollo', precio: 18000, cantidad: 1, subtotal: 18000 }, { productoId: 'p-08', nombre: 'Jugo de lulo', precio: 5000, cantidad: 1, subtotal: 5000 }], metodo: 'efectivo' },
-    { lineas: [{ productoId: 'p-03', nombre: 'Café con leche', precio: 5500, cantidad: 4, subtotal: 22000 }, { productoId: 'p-15', nombre: 'Empanada de pipián', precio: 3500, cantidad: 4, subtotal: 14000 }], metodo: 'transferencia' },
-    { lineas: [{ productoId: 'p-05', nombre: 'Latte de vainilla', precio: 7000, cantidad: 2, subtotal: 14000 }, { productoId: 'p-14', nombre: 'Pan de bono', precio: 2500, cantidad: 3, subtotal: 7500 }], metodo: 'daviplata' },
-    { lineas: [{ productoId: 'p-23', nombre: 'Bandeja paisa mini', precio: 25000, cantidad: 2, subtotal: 50000 }, { productoId: 'p-11', nombre: 'Limonada de coco', precio: 6000, cantidad: 2, subtotal: 12000 }], metodo: 'efectivo' },
-    { lineas: [{ productoId: 'p-19', nombre: 'Calentado paisa', precio: 12000, cantidad: 3, subtotal: 36000 }, { productoId: 'p-06', nombre: 'Chocolate caliente', precio: 5500, cantidad: 3, subtotal: 16500 }], metodo: 'nequi' },
-    { lineas: [{ productoId: 'p-21', nombre: 'Ensalada del chef', precio: 15000, cantidad: 2, subtotal: 30000 }, { productoId: 'p-12', nombre: 'Agua mineral', precio: 2500, cantidad: 2, subtotal: 5000 }], metodo: 'datafono' },
-    { lineas: [{ productoId: 'p-02', nombre: 'Café americano', precio: 4500, cantidad: 1, subtotal: 4500 }, { productoId: 'p-17', nombre: 'Buñuelo', precio: 2000, cantidad: 2, subtotal: 4000 }], metodo: 'efectivo' },
+    { items: [{ productId: 'p-02', name: 'Café americano', unitPrice: 4500, quantity: 2, subtotal: 9000 }, { productId: 'p-13', name: 'Croissant de jamón', unitPrice: 4500, quantity: 2, subtotal: 9000 }], paymentMethod: 'CASH' },
+    { items: [{ productId: 'p-04', name: 'Capuchino', unitPrice: 6500, quantity: 3, subtotal: 19500 }, { productId: 'p-16', name: 'Arepa con queso', unitPrice: 5000, quantity: 2, subtotal: 10000 }], paymentMethod: 'NEQUI' },
+    { items: [{ productId: 'p-18', name: 'Changua', unitPrice: 8000, quantity: 2, subtotal: 16000 }, { productId: 'p-01', name: 'Café tinto', unitPrice: 3000, quantity: 2, subtotal: 6000 }], paymentMethod: 'CARD' },
+    { items: [{ productId: 'p-22', name: 'Sancocho de pollo', unitPrice: 18000, quantity: 1, subtotal: 18000 }, { productId: 'p-08', name: 'Jugo de lulo', unitPrice: 5000, quantity: 1, subtotal: 5000 }], paymentMethod: 'CASH' },
+    { items: [{ productId: 'p-03', name: 'Café con leche', unitPrice: 5500, quantity: 4, subtotal: 22000 }, { productId: 'p-15', name: 'Empanada de pipián', unitPrice: 3500, quantity: 4, subtotal: 14000 }], paymentMethod: 'TRANSFER' },
+    { items: [{ productId: 'p-05', name: 'Latte de vainilla', unitPrice: 7000, quantity: 2, subtotal: 14000 }, { productId: 'p-14', name: 'Pan de bono', unitPrice: 2500, quantity: 3, subtotal: 7500 }], paymentMethod: 'DAVIPLATA' },
+    { items: [{ productId: 'p-23', name: 'Bandeja paisa mini', unitPrice: 25000, quantity: 2, subtotal: 50000 }, { productId: 'p-11', name: 'Limonada de coco', unitPrice: 6000, quantity: 2, subtotal: 12000 }], paymentMethod: 'CASH' },
+    { items: [{ productId: 'p-19', name: 'Calentado paisa', unitPrice: 12000, quantity: 3, subtotal: 36000 }, { productId: 'p-06', name: 'Chocolate caliente', unitPrice: 5500, quantity: 3, subtotal: 16500 }], paymentMethod: 'NEQUI' },
+    { items: [{ productId: 'p-21', name: 'Ensalada del chef', unitPrice: 15000, quantity: 2, subtotal: 30000 }, { productId: 'p-12', name: 'Agua mineral', unitPrice: 2500, quantity: 2, subtotal: 5000 }], paymentMethod: 'CARD' },
+    { items: [{ productId: 'p-02', name: 'Café americano', unitPrice: 4500, quantity: 1, subtotal: 4500 }, { productId: 'p-17', name: 'Buñuelo', unitPrice: 2000, quantity: 2, subtotal: 4000 }], paymentMethod: 'CASH' },
   ];
 
-  const horarios = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+  const horarios  = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
   const empleados = ['María García', 'Carlos Muñoz', 'Juanes Lizcano'];
 
-  // Genera órdenes para los últimos 30 días
   for (let dia = 0; dia < 30; dia++) {
     const fecha = new Date(hoy);
     fecha.setDate(fecha.getDate() - dia);
 
-    // Menos órdenes los lunes, más los fines de semana
-    const esFinde = fecha.getDay() === 0 || fecha.getDay() === 6;
+    const esFinde   = fecha.getDay() === 0 || fecha.getDay() === 6;
     const numOrdenes = esFinde
       ? 8 + Math.floor(Math.random() * 6)
       : 4 + Math.floor(Math.random() * 5);
 
     for (let i = 0; i < numOrdenes; i++) {
-      const plantilla = plantillas[i % plantillas.length];
-      const hora = horarios[Math.floor(Math.random() * horarios.length)];
-      const minuto = Math.floor(Math.random() * 60);
-      const fechaOrden = new Date(fecha);
-      fechaOrden.setHours(hora, minuto, 0, 0);
+      const plantilla  = plantillas[i % plantillas.length];
+      const hora       = horarios[Math.floor(Math.random() * horarios.length)];
+      const minuto     = Math.floor(Math.random() * 60);
+      const createdAt  = new Date(fecha);
+      createdAt.setHours(hora, minuto, 0, 0);
 
-      // No generar órdenes futuras
-      if (fechaOrden > hoy) continue;
+      if (createdAt > hoy) continue;
 
-      const subtotal = plantilla.lineas.reduce((s, l) => s + l.subtotal, 0);
+      const subtotal = plantilla.items.reduce((s, l) => s + l.subtotal, 0);
       ordenes.push({
-        id: nextId(),
-        lineas: plantilla.lineas,
+        id:           nextId(),
+        status:       'PAID',
+        items:        plantilla.items,
         subtotal,
-        propina: null,
-        total: subtotal,
-        metodoPago: plantilla.metodo,
-        numFactura: nextFactura(),
-        creadoEn: fechaOrden,
-        estado: 'pagada',
-        empleadoNombre: empleados[Math.floor(Math.random() * empleados.length)],
+        tip:          null,
+        total:        subtotal,
+        paymentMethod: plantilla.paymentMethod,
+        saleNumber:   nextSale(),
+        createdAt,
+        employeeName: empleados[Math.floor(Math.random() * empleados.length)],
       });
     }
   }
 
-  return ordenes.sort((a, b) => b.creadoEn - a.creadoEn);
+  return ordenes.sort((a, b) => b.createdAt - a.createdAt);
 }
 
 // ─── Estado mutable en memoria ───────────────────────────────────────────────
 
 const DB = {
+  // role y planType alineados con los enums del backend
   users: [
-    { id: 'user-001', email: 'admin@tresorquideas.com', password: 'demo1234', negocioId: 'neg-001', verificado: true },
+    {
+      id:            'user-001',
+      email:         'admin@tresorquideas.com',
+      password:      'demo1234',
+      negocioId:     'neg-001',
+      role:          'ADMIN',
+      planType:      'PRO',
+      planExpiresAt: null,
+    },
   ],
-  negocios: { 'neg-001': { ...NEGOCIO_DEMO } },
-  categorias: [...CATEGORIAS_INIT],
-  productos: [...PRODUCTOS_INIT],
-  mesas: MESAS_INIT.map(m => ({ ...m })),
-  cuentas: [],
-  ordenes: generarOrdenesDemo(),
-  empleados: [...EMPLEADOS_INIT],
-  movimientos: [],
-  turnos: [],
-  pendingOtps: {},
+  negocios:     { 'neg-001': { ...NEGOCIO_DEMO } },
+  categorias:   [...CATEGORIAS_INIT],
+  productos:    [...PRODUCTOS_INIT],
+  mesas:        MESAS_INIT.map(m => ({ ...m })),
+  cuentas:      [],
+  ordenes:      generarOrdenesDemo(),
+  empleados:    [...EMPLEADOS_INIT],
+  movimientos:  [],
+  turnos:       [],
+  pendingOtps:  {},
   currentUserId: null,
 };
 
 // ─── Helpers de autenticación ─────────────────────────────────────────────────
 
-function crearToken(user) {
+// Crea un JWT mock con los campos que devuelve el backend real
+function crearToken(user, expiresInSec = 86400) {
   const payload = {
-    uid: user.id,
-    email: user.email,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 86400,
+    sub:           user.id,
+    email:         user.email,
+    role:          user.role,
+    planType:      user.planType,
+    planExpiresAt: user.planExpiresAt ?? null,
+    iat:           Math.floor(Date.now() / 1000),
+    exp:           Math.floor(Date.now() / 1000) + expiresInSec,
   };
   return 'mock.' + btoa(JSON.stringify(payload)) + '.sig';
 }
 
 function usuarioActual() {
-  return DB.users.find(u => u.id === DB.currentUserId) ?? null;
+  if (DB.currentUserId) {
+    return DB.users.find(u => u.id === DB.currentUserId) ?? null;
+  }
+  // Al recargar la página el estado RAM se pierde.
+  // Recuperamos el userId desde el accessToken guardado en localStorage.
+  try {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('mezo_token') : null;
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.sub ?? payload.uid;
+    if (userId) {
+      DB.currentUserId = userId;  // restaurar para llamadas siguientes
+      return DB.users.find(u => u.id === userId) ?? null;
+    }
+  } catch { /* token inválido o entorno sin localStorage */ }
+  return null;
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -177,19 +205,27 @@ function usuarioActual() {
 export async function login(email, password) {
   await delay();
 
-  // En modo mock acepta cualquier email válido y contraseña ≥ 6 caracteres
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const passValida  = typeof password === 'string' && password.length >= 6;
   if (!emailValido || !passValida) {
     throw Object.assign(new Error('Correo o contraseña incorrectos.'), { status: 401 });
   }
 
-  // Entra siempre como el usuario demo (datos de "Tres Orquídeas")
   const demoUser = DB.users[0];
   DB.currentUserId = demoUser.id;
-  const token   = crearToken({ ...demoUser, email });
-  const negocio = DB.negocios[demoUser.negocioId] ?? null;
-  return { token, user: { uid: demoUser.id, email }, negocio };
+
+  // Respuesta idéntica al backend: accessToken + refreshToken + user
+  return {
+    accessToken:  crearToken({ ...demoUser, email }, 86400),
+    refreshToken: crearToken({ ...demoUser, email }, 604800),
+    user: {
+      id:            demoUser.id,
+      email,
+      role:          demoUser.role,
+      planType:      demoUser.planType,
+      planExpiresAt: demoUser.planExpiresAt,
+    },
+  };
 }
 
 export async function register(email, password) {
@@ -197,7 +233,15 @@ export async function register(email, password) {
   if (DB.users.find(u => u.email === email)) {
     throw Object.assign(new Error('Ya existe una cuenta con ese correo.'), { status: 409 });
   }
-  const newUser = { id: nextId(), email, password, negocioId: null, verificado: false };
+  const newUser = {
+    id:            nextId(),
+    email,
+    password,
+    negocioId:     null,
+    role:          'ADMIN',
+    planType:      'SEMILLA',
+    planExpiresAt: null,
+  };
   DB.users.push(newUser);
   // OTP fijo para demo: 123456
   DB.pendingOtps[email] = { code: '123456', userId: newUser.id, expiresAt: Date.now() + 5 * 60000 };
@@ -207,17 +251,27 @@ export async function register(email, password) {
 export async function verifyOtp(email, code) {
   await delay();
   const otp = DB.pendingOtps[email];
-  if (!otp) throw Object.assign(new Error('No hay código pendiente para este correo.'), { status: 400 });
+  if (!otp)                   throw Object.assign(new Error('No hay código pendiente para este correo.'), { status: 400 });
   if (Date.now() > otp.expiresAt) throw Object.assign(new Error('El código expiró. Reenvíalo.'), { status: 400 });
-  if (otp.code !== code) throw Object.assign(new Error('Código incorrecto.'), { status: 400 });
+  if (otp.code !== code)      throw Object.assign(new Error('Código incorrecto.'), { status: 400 });
 
   delete DB.pendingOtps[email];
   const user = DB.users.find(u => u.id === otp.userId);
   if (!user) throw new Error('Usuario no encontrado.');
-  user.verificado = true;
   DB.currentUserId = user.id;
-  const token = crearToken(user);
-  return { token, user: { uid: user.id, email: user.email }, negocio: null };
+
+  // Misma forma de respuesta que login
+  return {
+    accessToken:  crearToken(user, 86400),
+    refreshToken: crearToken(user, 604800),
+    user: {
+      id:            user.id,
+      email:         user.email,
+      role:          user.role,
+      planType:      user.planType,
+      planExpiresAt: user.planExpiresAt,
+    },
+  };
 }
 
 export async function resendOtp(email) {
@@ -230,10 +284,11 @@ export async function resendOtp(email) {
 
 // ─── Negocio ──────────────────────────────────────────────────────────────────
 
+// Respuesta con los campos del backend de Manuel
 export async function getNegocio() {
   await delay();
   const user = usuarioActual();
-  if (!user || !user.negocioId) return null;
+  if (!user?.negocioId) return null;
   return DB.negocios[user.negocioId] ?? null;
 }
 
@@ -242,19 +297,14 @@ export async function createNegocio(data) {
   const user = usuarioActual();
   if (!user) throw new Error('No autenticado.');
   const id = nextId();
-  const negocio = {
-    id,
-    ...data,
-    plan: 'pro',
-    onboardingCompleto: true,
-    creadoEn: new Date(),
-  };
-  DB.negocios[id] = negocio;
-  user.negocioId   = id;
 
-  // Crear las mesas indicadas
-  if (data.tieneMesas && data.mesas > 0) {
-    for (let i = 1; i <= data.mesas; i++) {
+  // Guardar con los campos del backend (name, type, phone, etc.)
+  const negocio = { id, ...data, isOpen: true };
+  DB.negocios[id] = negocio;
+  user.negocioId  = id;
+
+  if (data.tableCount > 0) {
+    for (let i = 1; i <= data.tableCount; i++) {
       DB.mesas.push({ id: nextId(), numero: i, nombre: `Mesa ${i}`, estado: 'libre', ocupadaEn: null, total: null });
     }
   }
@@ -339,7 +389,6 @@ export async function updateMesa(id, data) {
   await delay();
   const idx = DB.mesas.findIndex(m => m.id === id);
   if (idx === -1) throw new Error('Mesa no encontrada.');
-  // serverTimestamp() simulado
   const sanitized = Object.fromEntries(
     Object.entries(data).map(([k, v]) => [k, v === 'serverTimestamp' ? new Date() : v])
   );
@@ -353,14 +402,12 @@ export async function cambiarMesa(origenId, destinoId) {
   const destino = DB.mesas.find(m => m.id === destinoId);
   if (!origen || !destino) throw new Error('Mesa no encontrada.');
 
-  const totalOrigen   = origen.total;
-  const lineasOrigen  = origen.lineas ?? null;
+  const totalOrigen    = origen.total;
+  const lineasOrigen   = origen.lineas ?? null;
   const personasOrigen = origen.personas ?? null;
 
-  // Origen → libre
-  Object.assign(origen,  { estado: 'libre', ocupadaEn: null, total: null, lineas: null, personas: null });
-  // Destino → hereda los datos del origen
-  Object.assign(destino, { estado: 'ocupada', ocupadaEn: new Date(), total: totalOrigen, lineas: lineasOrigen, personas: personasOrigen });
+  Object.assign(origen,  { estado: 'libre',   ocupadaEn: null,       total: null,         lineas: null,        personas: null });
+  Object.assign(destino, { estado: 'ocupada', ocupadaEn: new Date(), total: totalOrigen,  lineas: lineasOrigen, personas: personasOrigen });
 
   return { ok: true };
 }
@@ -394,34 +441,87 @@ export async function getCuenta(id) {
   return cuenta;
 }
 
-// ─── Órdenes ─────────────────────────────────────────────────────────────────
+// ─── Órdenes — flujo de 3 pasos ───────────────────────────────────────────────
+//
+// Paso 1: createOrden  → POST /orders        → status OPEN
+// Paso 2: deliverOrden → POST /orders/{id}/deliver → status DELIVERED
+// Paso 3: createVenta  → POST /sales         → status PAID + devuelve la venta
 
 export async function getOrdenes(params = {}) {
   await delay();
   let result = [...DB.ordenes];
   if (params.desde) {
     const desde = new Date(params.desde);
-    result = result.filter(o => new Date(o.creadoEn) >= desde);
+    result = result.filter(o => new Date(o.createdAt) >= desde);
   }
   if (params.hasta) {
     const hasta = new Date(params.hasta);
-    result = result.filter(o => new Date(o.creadoEn) <= hasta);
+    result = result.filter(o => new Date(o.createdAt) <= hasta);
   }
-  return result.sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn));
+  return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
+// Paso 1 — crea la orden con estado OPEN
 export async function createOrden(data) {
   await delay();
-  const numFactura = nextFactura();
   const orden = {
-    id: nextId(),
-    numFactura,
-    ...data,
-    creadoEn: new Date(),
-    estado: 'pagada',
+    id:           nextId(),
+    status:       'OPEN',
+    items:        data.items ?? [],
+    subtotal:     data.items?.reduce((s, i) => s + i.subtotal, 0) ?? 0,
+    tip:          null,
+    total:        data.items?.reduce((s, i) => s + i.subtotal, 0) ?? 0,
+    paymentMethod: null,
+    saleNumber:   null,
+    tableId:      data.tableId ?? null,
+    employeeName: data.employeeName ?? null,
+    shiftId:      data.shiftId ?? null,
+    createdAt:    new Date(),
   };
   DB.ordenes.unshift(orden);
   return orden;
+}
+
+// Paso 2 — marca la orden como entregada (DELIVERED)
+export async function deliverOrden(id) {
+  await delay();
+  const idx = DB.ordenes.findIndex(o => o.id === id);
+  if (idx === -1) throw new Error('Orden no encontrada.');
+  DB.ordenes[idx] = { ...DB.ordenes[idx], status: 'DELIVERED' };
+  return DB.ordenes[idx];
+}
+
+// Paso 3 — cierra la venta con método de pago; retorna la venta creada
+export async function createVenta(data) {
+  await delay();
+  const idx = DB.ordenes.findIndex(o => o.id === data.orderId);
+  if (idx === -1) throw new Error('Orden no encontrada.');
+
+  const saleNumber = nextSale();
+
+  // Actualizar la orden al estado final PAID
+  DB.ordenes[idx] = {
+    ...DB.ordenes[idx],
+    status:       'PAID',
+    paymentMethod: data.paymentMethod,
+    subtotal:     data.subtotal,
+    tip:          data.tip ?? null,
+    total:        data.total,
+    saleNumber,
+  };
+
+  return {
+    id:            nextId(),
+    saleNumber,
+    orderId:       data.orderId,
+    paymentMethod: data.paymentMethod,
+    subtotal:      data.subtotal,
+    tip:           data.tip ?? null,
+    total:         data.total,
+    amountPaid:    data.amountPaid ?? null,
+    change:        data.change ?? null,
+    createdAt:     new Date(),
+  };
 }
 
 export async function updateOrden(id, data) {
@@ -509,33 +609,32 @@ export async function getKPIs(desde, hasta) {
   await delay();
   const desdeDate = new Date(desde);
   const hastaDate = new Date(hasta);
-  const ordenes = DB.ordenes.filter(o => {
-    const d = new Date(o.creadoEn);
-    return d >= desdeDate && d <= hastaDate;
+  const ordenes   = DB.ordenes.filter(o => {
+    const d = new Date(o.createdAt);
+    return d >= desdeDate && d <= hastaDate && o.status === 'PAID';
   });
 
   const totalVentas = ordenes.reduce((s, o) => s + o.total, 0);
   const numOrdenes  = ordenes.length;
   const ticketProm  = numOrdenes ? Math.round(totalVentas / numOrdenes) : 0;
 
-  // Mejor hora
   const porHora = {};
   ordenes.forEach(o => {
-    const h = new Date(o.creadoEn).getHours();
+    const h = new Date(o.createdAt).getHours();
     porHora[h] = (porHora[h] || 0) + o.total;
   });
   const mejorHora = Object.entries(porHora).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
-  // Producto top
   const porProducto = {};
-  ordenes.forEach(o => o.lineas.forEach(l => {
-    porProducto[l.nombre] = (porProducto[l.nombre] || 0) + l.cantidad;
+  ordenes.forEach(o => o.items.forEach(i => {
+    porProducto[i.name] = (porProducto[i.name] || 0) + i.quantity;
   }));
   const productoTop = Object.entries(porProducto).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
-  // Método top
   const porMetodo = {};
-  ordenes.forEach(o => { porMetodo[o.metodoPago] = (porMetodo[o.metodoPago] || 0) + 1; });
+  ordenes.forEach(o => {
+    if (o.paymentMethod) porMetodo[o.paymentMethod] = (porMetodo[o.paymentMethod] || 0) + 1;
+  });
   const metodoTop = Object.entries(porMetodo).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
   return { totalVentas, numOrdenes, ticketProm, mejorHora, productoTop, metodoTop };
@@ -545,15 +644,15 @@ export async function getVentasPorDia(desde, hasta) {
   await delay();
   const desdeDate = new Date(desde);
   const hastaDate = new Date(hasta);
-  const ordenes = DB.ordenes.filter(o => {
-    const d = new Date(o.creadoEn);
-    return d >= desdeDate && d <= hastaDate;
+  const ordenes   = DB.ordenes.filter(o => {
+    const d = new Date(o.createdAt);
+    return d >= desdeDate && d <= hastaDate && o.status === 'PAID';
   });
 
   const porDia = {};
   ordenes.forEach(o => {
-    const fecha = new Date(o.creadoEn);
-    const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+    const fecha = new Date(o.createdAt);
+    const key   = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
     porDia[key] = (porDia[key] || 0) + o.total;
   });
 

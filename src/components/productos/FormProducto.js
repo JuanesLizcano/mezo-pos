@@ -1,10 +1,7 @@
 import { useState, useRef } from 'react';
-import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ImagePlus, X } from 'lucide-react';
-import * as Sentry from '@sentry/react';
 import toast from 'react-hot-toast';
-import { db, storage } from '../../services/firebase';
+import { createProducto, updateProducto } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { useCategorias } from '../../hooks/useCategorias';
 import Modal from '../ui/Modal';
@@ -13,102 +10,74 @@ const INPUT_CLS = 'w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-l
 const LABEL_CLS = 'block text-xs font-medium text-mezo-cream-dim uppercase tracking-widest mb-2 font-body';
 
 export default function FormProducto({ producto = null, onClose }) {
-  const { user }       = useAuth();
-  const { categorias } = useCategorias();
-  const fileRef        = useRef(null);
+  const { bumpVersion }  = useAuth();
+  const { categorias }   = useCategorias();
+  const fileRef          = useRef(null);
+  const esEdicion        = !!producto;
 
-  const [nombre, setNombre]               = useState(producto?.nombre ?? '');
-  const [descripcion, setDescripcion]     = useState(producto?.descripcion ?? '');
-  const [precio, setPrecio]               = useState(producto?.precio ?? '');
-  const [categoriaId, setCategoriaId]     = useState(producto?.categoriaId ?? '');
-  const [disponible, setDisponible]       = useState(producto?.disponible ?? true);
-  const [ingredientes, setIngredientes]   = useState(producto?.ingredientes ?? []);
-  const [ingredInput, setIngredInput]     = useState('');
-  const [imagenUrl, setImagenUrl]         = useState(producto?.imagen ?? null);
-  const [imagenFile, setImagenFile]       = useState(null);
+  const [nombre,        setNombre]        = useState(producto?.nombre ?? '');
+  const [descripcion,   setDescripcion]   = useState(producto?.descripcion ?? '');
+  const [precio,        setPrecio]        = useState(producto?.precio ?? '');
+  const [costo,         setCosto]         = useState(producto?.costo ?? '');
+  const [categoriaId,   setCategoriaId]   = useState(producto?.categoriaId ?? '');
+  const [disponible,    setDisponible]    = useState(producto?.disponible ?? true);
+  const [ingredientes,  setIngredientes]  = useState(producto?.ingredientes ?? []);
+  const [ingredInput,   setIngredInput]   = useState('');
   const [imagenPreview, setImagenPreview] = useState(producto?.imagen ?? null);
-  const [loading, setLoading]             = useState(false);
-  const [error, setError]                 = useState('');
-  const esEdicion = !!producto;
+  const [loading,       setLoading]       = useState(false);
+  const [error,         setError]         = useState('');
 
-  /* ── Imagen ──────────────────────────────────── */
   function handleFileChange(e) {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) { setError('La imagen no puede superar 3MB.'); return; }
-    setImagenFile(file);
     setImagenPreview(URL.createObjectURL(file));
     setError('');
   }
 
   function quitarImagen() {
-    setImagenFile(null); setImagenPreview(null); setImagenUrl(null);
+    setImagenPreview(null);
     if (fileRef.current) fileRef.current.value = '';
   }
 
-  async function subirImagen(uid, prodId) {
-    if (!imagenFile) return imagenUrl;
-    const r = ref(storage, `negocios/${uid}/productos/${prodId}`);
-    await uploadBytes(r, imagenFile);
-    return await getDownloadURL(r);
-  }
-
-  /* ── Ingredientes (chips) ────────────────────── */
   function agregarIngrediente() {
     const val = ingredInput.trim().replace(/,+$/, '');
-    if (val && !ingredientes.includes(val)) {
-      setIngredientes((prev) => [...prev, val]);
-    }
+    if (val && !ingredientes.includes(val)) setIngredientes(prev => [...prev, val]);
     setIngredInput('');
   }
 
   function handleIngredKey(e) {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      agregarIngrediente();
-    }
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); agregarIngrediente(); }
     if (e.key === 'Backspace' && ingredInput === '' && ingredientes.length > 0) {
-      setIngredientes((prev) => prev.slice(0, -1));
+      setIngredientes(prev => prev.slice(0, -1));
     }
   }
 
-  function quitarIngrediente(item) {
-    setIngredientes((prev) => prev.filter((i) => i !== item));
-  }
-
-  /* ── Submit ──────────────────────────────────── */
   async function handleSubmit(e) {
     e.preventDefault();
     if (!nombre.trim() || !precio) return;
-    // Agregar ingrediente pendiente sin confirmar
     if (ingredInput.trim()) agregarIngrediente();
     setLoading(true); setError('');
     try {
       const base = {
-        nombre: nombre.trim(),
-        descripcion: descripcion.trim(),
-        precio: Number(precio),
-        categoriaId: categoriaId || null,
+        nombre:       nombre.trim(),
+        descripcion:  descripcion.trim(),
+        precio:       Number(precio),
+        costo:        Number(costo) || 0,
+        categoriaId:  categoriaId || null,
         disponible,
         ingredientes,
+        imagen:       null,
       };
       if (esEdicion) {
-        const url = await subirImagen(user.uid, producto.id);
-        await updateDoc(doc(db, 'negocios', user.uid, 'productos', producto.id), {
-          ...base, imagen: url ?? null,
-        });
+        await updateProducto(producto.id, base);
       } else {
-        const docRef = await addDoc(
-          collection(db, 'negocios', user.uid, 'productos'),
-          { ...base, imagen: null, creadoEn: serverTimestamp() }
-        );
-        const url = await subirImagen(user.uid, docRef.id);
-        if (url) await updateDoc(docRef, { imagen: url });
+        await createProducto(base);
       }
+      bumpVersion();
       toast.success(esEdicion ? 'Producto actualizado ✓' : 'Producto creado ✓');
       onClose();
-    } catch (err) {
-      Sentry.captureException(err);
+    } catch {
       toast.error('Error al guardar el producto. Intenta de nuevo.');
     } finally {
       setLoading(false);
@@ -118,8 +87,7 @@ export default function FormProducto({ producto = null, onClose }) {
   return (
     <Modal titulo={esEdicion ? 'Editar producto' : 'Nuevo producto'} onClose={onClose} ancho="max-w-xl">
       <form onSubmit={handleSubmit} className="space-y-4">
-
-        {/* ── Imagen ── */}
+        {/* Imagen */}
         <div>
           <label className={LABEL_CLS}>Imagen</label>
           {imagenPreview ? (
@@ -140,89 +108,86 @@ export default function FormProducto({ producto = null, onClose }) {
           <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
         </div>
 
-        {/* ── Nombre ── */}
+        {/* Nombre */}
         <div>
           <label className={LABEL_CLS}>Nombre *</label>
-          <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)}
+          <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
             placeholder="Ej: Cappuccino 8oz" required maxLength={80} className={INPUT_CLS} />
         </div>
 
-        {/* ── Descripción ── */}
+        {/* Descripción */}
         <div>
-          <label className={LABEL_CLS}>
-            Descripción <span className="normal-case text-mezo-stone">(opcional)</span>
-          </label>
-          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)}
+          <label className={LABEL_CLS}>Descripción <span className="normal-case text-mezo-stone">(opcional)</span></label>
+          <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)}
             placeholder="Breve descripción del plato o bebida..." rows={2} maxLength={200}
             className={`${INPUT_CLS} resize-none`} />
         </div>
 
-        {/* ── Ingredientes (chips) ── */}
+        {/* Ingredientes chips */}
         <div>
-          <label className={LABEL_CLS}>
-            Ingredientes <span className="normal-case text-mezo-stone">(opcional)</span>
-          </label>
-          {/* Contenedor chips + input */}
-          <div
-            className="min-h-[44px] px-3 py-2 bg-mezo-ink-muted border border-mezo-ink-line rounded-mezo-md flex flex-wrap gap-1.5 items-center cursor-text focus-within:ring-2 focus-within:ring-mezo-gold focus-within:border-transparent transition"
-            onClick={() => document.getElementById('ingred-input')?.focus()}
-          >
-            {ingredientes.map((item) => (
-              <span key={item}
-                className="inline-flex items-center gap-1 bg-mezo-ink-line text-mezo-cream-dim text-xs px-2 py-1 rounded-mezo-sm font-body">
+          <label className={LABEL_CLS}>Ingredientes <span className="normal-case text-mezo-stone">(opcional)</span></label>
+          <div className="min-h-[44px] px-3 py-2 bg-mezo-ink-muted border border-mezo-ink-line rounded-mezo-md flex flex-wrap gap-1.5 items-center cursor-text focus-within:ring-2 focus-within:ring-mezo-gold focus-within:border-transparent transition"
+            onClick={() => document.getElementById('ingred-input')?.focus()}>
+            {ingredientes.map(item => (
+              <span key={item} className="inline-flex items-center gap-1 bg-mezo-ink-line text-mezo-cream-dim text-xs px-2 py-1 rounded-mezo-sm font-body">
                 {item}
-                <button type="button" onClick={() => quitarIngrediente(item)}
-                  className="text-mezo-stone hover:text-mezo-cream transition ml-0.5">
-                  <X size={10} />
-                </button>
+                <button type="button" onClick={() => setIngredientes(prev => prev.filter(i => i !== item))}
+                  className="text-mezo-stone hover:text-mezo-cream transition ml-0.5"><X size={10} /></button>
               </span>
             ))}
-            <input
-              id="ingred-input"
-              type="text"
-              value={ingredInput}
-              onChange={(e) => setIngredInput(e.target.value)}
-              onKeyDown={handleIngredKey}
-              onBlur={agregarIngrediente}
+            <input id="ingred-input" type="text" value={ingredInput}
+              onChange={e => setIngredInput(e.target.value)}
+              onKeyDown={handleIngredKey} onBlur={agregarIngrediente}
               placeholder={ingredientes.length === 0 ? 'Escribe y presiona Enter o coma...' : ''}
-              className="flex-1 min-w-[140px] bg-transparent border-none outline-none text-mezo-cream placeholder-mezo-stone text-sm font-body"
-            />
+              className="flex-1 min-w-[140px] bg-transparent border-none outline-none text-mezo-cream placeholder-mezo-stone text-sm font-body" />
           </div>
-          <p className="text-xs text-mezo-stone mt-1.5 font-body">
-            Enter o coma para agregar · Backspace para borrar el último
-          </p>
+          <p className="text-xs text-mezo-stone mt-1.5 font-body">Enter o coma para agregar · Backspace para borrar el último</p>
         </div>
 
-        {/* ── Precio + Categoría ── */}
+        {/* Precio de venta + Costo de producción */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={LABEL_CLS}>Precio (COP) *</label>
-            <input type="number" value={precio} onChange={(e) => setPrecio(e.target.value)}
+            <label className={LABEL_CLS}>Precio de venta (COP) *</label>
+            <input type="number" value={precio} onChange={e => setPrecio(e.target.value)}
               placeholder="0" required min={0}
               className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-mono" />
           </div>
           <div>
-            <label className={LABEL_CLS}>Categoría</label>
-            <select value={categoriaId} onChange={(e) => setCategoriaId(e.target.value)}
-              className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body">
-              <option value="">Sin categoría</option>
-              {categorias.map((c) => (
-                <option key={c.id} value={c.id}>{c.emoji} {c.nombre}</option>
-              ))}
-            </select>
+            <label className={LABEL_CLS}>
+              Costo de producción
+              <span className="ml-1 text-mezo-stone normal-case">(opcional)</span>
+            </label>
+            <input type="number" value={costo} onChange={e => setCosto(e.target.value)}
+              placeholder="0" min={0}
+              className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-mono" />
+            {costo > 0 && precio > 0 && (
+              <p className="text-xs mt-1 font-body"
+                style={{ color: ((precio - costo) / precio) >= 0.55 ? '#3DAA68' : '#D9A437' }}>
+                Margen {Math.round(((precio - costo) / precio) * 100)}%
+              </p>
+            )}
           </div>
         </div>
 
-        {/* ── Disponible ── */}
+        {/* Categoría */}
+        <div>
+          <label className={LABEL_CLS}>Categoría</label>
+          <select value={categoriaId} onChange={e => setCategoriaId(e.target.value)}
+            className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body">
+            <option value="">Sin categoría</option>
+            {categorias.map(c => <option key={c.id} value={c.id}>{c.emoji} {c.nombre}</option>)}
+          </select>
+        </div>
+
+        {/* Disponible */}
         <div className="flex items-center justify-between p-4 bg-mezo-ink-muted rounded-mezo-lg border border-mezo-ink-line">
           <div>
             <p className="text-sm font-medium text-mezo-cream font-body">Disponible para vender</p>
             <p className="text-xs text-mezo-stone mt-0.5 font-body">Aparece en el POS y en el menú</p>
           </div>
-          <button type="button" onClick={() => setDisponible((v) => !v)}
+          <button type="button" onClick={() => setDisponible(v => !v)}
             className={`relative w-12 h-6 rounded-full transition-colors ${disponible ? 'bg-mezo-gold' : 'bg-mezo-ink-line'}`}>
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-              ${disponible ? 'translate-x-6' : 'translate-x-0'}`} />
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${disponible ? 'translate-x-6' : 'translate-x-0'}`} />
           </button>
         </div>
 

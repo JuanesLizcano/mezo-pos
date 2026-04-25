@@ -1,14 +1,12 @@
 import { useState, useMemo } from 'react';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Sparkles, Moon, Sun } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { db } from '../services/firebase';
-import { useAuth } from '../context/AuthContext';
 import { useOrdenes } from '../hooks/useOrdenes';
 import Navbar from '../components/layout/Navbar';
 import GraficaVentas from '../components/reportes/GraficaVentas';
 import KPIs, { calcularKPIs } from '../components/reportes/KPIs';
 import ModalCierreDia from '../components/reportes/ModalCierreDia';
+import FoodCost from '../components/reportes/FoodCost';
 import { analizarVentas } from '../services/claude';
 
 const PERIODOS = [
@@ -49,8 +47,8 @@ function agruparParaGrafica(ordenes, periodo) {
   const grupos = {};
 
   ordenes.forEach(o => {
-    if (!o.creadoEn?.toDate) return;
-    const fecha = o.creadoEn.toDate();
+    if (!o.createdAt) return;
+    const fecha = new Date(o.createdAt);
     let key;
 
     switch (periodo) {
@@ -80,19 +78,21 @@ function agruparParaGrafica(ordenes, periodo) {
         key = fecha.toLocaleDateString('es-CO');
     }
 
-    grupos[key] = (grupos[key] ?? 0) + (o.total ?? 0);
+    grupos[key] = (grupos[key] ?? 0) + (o.total ?? 0);  // total viene del backend
   });
 
   return Object.entries(grupos).map(([label, valor]) => ({ label, valor }));
 }
 
-function hoyISO() {
-  return new Date().toISOString().slice(0, 10);
-}
+
+const TABS_REPORTES = [
+  { id: 'ventas',    label: 'Ventas' },
+  { id: 'foodcost',  label: 'Food Cost' },
+];
 
 export default function Reportes() {
-  const { user }            = useAuth();
-  const [periodo, setPeriodo] = useState('hoy');
+  const [tabActivo, setTabActivo]       = useState('ventas');
+  const [periodo, setPeriodo]           = useState('hoy');
   const [modalCierre, setModalCierre]   = useState(false);
   const [iaTexto, setIaTexto]           = useState('');
   const [iaLoading, setIaLoading]       = useState(false);
@@ -104,9 +104,7 @@ export default function Reportes() {
   const kpis      = useMemo(() => calcularKPIs(ordenes), [ordenes]);
   const grafData  = useMemo(() => agruparParaGrafica(ordenes, periodo), [ordenes, periodo]);
 
-  async function handleEmpezarDia() {
-    const diaRef = doc(db, 'negocios', user.uid, 'dias', hoyISO());
-    await setDoc(diaRef, { fecha: hoyISO(), estado: 'abierto', abiertoEn: serverTimestamp() }, { merge: true });
+  function handleEmpezarDia() {
     toast.success('¡Buen día! Turno abierto ✓');
   }
 
@@ -166,78 +164,95 @@ export default function Reportes() {
           </div>
         </div>
 
-        {/* Tabs de período */}
-        <div className="flex gap-1.5 mb-6">
-          {PERIODOS.map(p => (
-            <button key={p.id} onClick={() => setPeriodo(p.id)}
-              className={`px-4 py-1.5 rounded-mezo-md text-sm font-body font-medium transition
-                ${periodo === p.id
-                  ? 'bg-mezo-gold text-mezo-ink'
-                  : 'border border-mezo-ink-line text-mezo-stone hover:text-mezo-cream hover:border-mezo-gold/40'}`}>
-              {p.label}
+        {/* Tabs principales: Ventas / Food Cost */}
+        <div className="flex gap-1 bg-mezo-ink-raised border border-mezo-ink-line p-1 rounded-mezo-lg w-fit mb-6">
+          {TABS_REPORTES.map(t => (
+            <button key={t.id} onClick={() => setTabActivo(t.id)}
+              className={`px-5 py-2 rounded-mezo-md text-sm font-semibold transition font-body
+                ${tabActivo === t.id
+                  ? 'bg-mezo-gold text-mezo-ink shadow-sm'
+                  : 'text-mezo-stone hover:text-mezo-cream-dim'}`}>
+              {t.label}
             </button>
           ))}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center h-40">
-            <div className="w-7 h-7 border-4 border-mezo-gold border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* KPIs */}
-            <KPIs kpis={kpis} />
-
-            {/* Gráfica */}
-            <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-5">
-              <GraficaVentas datos={grafData} titulo="Ventas por período" />
+        {/* ─── Tab Ventas ─────────────────────────────────────────────── */}
+        {tabActivo === 'ventas' && (
+          <>
+            {/* Filtros de período */}
+            <div className="flex gap-1.5 mb-6">
+              {PERIODOS.map(p => (
+                <button key={p.id} onClick={() => setPeriodo(p.id)}
+                  className={`px-4 py-1.5 rounded-mezo-md text-sm font-body font-medium transition
+                    ${periodo === p.id
+                      ? 'bg-mezo-gold text-mezo-ink'
+                      : 'border border-mezo-ink-line text-mezo-stone hover:text-mezo-cream hover:border-mezo-gold/40'}`}>
+                  {p.label}
+                </button>
+              ))}
             </div>
 
-            {/* Análisis IA */}
-            <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-mezo-stone uppercase tracking-widest font-body" style={{ fontSize: 10 }}>
-                    Claude AI
-                  </p>
-                  <p className="text-mezo-cream font-body font-semibold text-sm mt-0.5">
-                    Análisis inteligente de ventas
-                  </p>
-                </div>
-                <button onClick={handleIA} disabled={iaLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-mezo-gold/15 border border-mezo-gold/40 text-mezo-gold hover:bg-mezo-gold/25 rounded-mezo-md text-sm font-body font-medium transition disabled:opacity-50">
-                  <Sparkles size={14} />
-                  {iaLoading ? 'Analizando...' : 'Analizar con IA'}
-                </button>
+            {loading ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="w-7 h-7 border-4 border-mezo-gold border-t-transparent rounded-full animate-spin" />
               </div>
+            ) : (
+              <div className="space-y-6">
+                <KPIs kpis={kpis} />
 
-              {iaError && (
-                <p className="text-mezo-stone font-body text-sm bg-mezo-ink-muted rounded-mezo-md px-4 py-3">
-                  {iaError}
-                </p>
-              )}
+                <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-5">
+                  <GraficaVentas datos={grafData} titulo="Ventas por período" />
+                </div>
 
-              {iaTexto && (
-                <div className="space-y-3">
-                  {iaTexto.split('\n').filter(l => l.trim()).map((linea, i) => (
-                    <div key={i} className="flex gap-3">
-                      <span className="text-mezo-gold font-mono text-sm shrink-0">{i + 1}.</span>
-                      <p className="text-mezo-cream-dim font-body text-sm leading-relaxed">
-                        {linea.replace(/^\d+\.\s*/, '')}
+                {/* Análisis IA */}
+                <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="text-mezo-stone uppercase tracking-widest font-body" style={{ fontSize: 10 }}>
+                        Claude AI
+                      </p>
+                      <p className="text-mezo-cream font-body font-semibold text-sm mt-0.5">
+                        Análisis inteligente de ventas
                       </p>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <button onClick={handleIA} disabled={iaLoading}
+                      className="flex items-center gap-2 px-4 py-2 bg-mezo-gold/15 border border-mezo-gold/40 text-mezo-gold hover:bg-mezo-gold/25 rounded-mezo-md text-sm font-body font-medium transition disabled:opacity-50">
+                      <Sparkles size={14} />
+                      {iaLoading ? 'Analizando...' : 'Analizar con IA'}
+                    </button>
+                  </div>
 
-              {!iaTexto && !iaError && !iaLoading && (
-                <p className="text-mezo-stone font-body text-sm">
-                  Presiona "Analizar con IA" para recibir recomendaciones personalizadas basadas en tus ventas reales.
-                </p>
-              )}
-            </div>
-          </div>
+                  {iaError && (
+                    <p className="text-mezo-stone font-body text-sm bg-mezo-ink-muted rounded-mezo-md px-4 py-3">
+                      {iaError}
+                    </p>
+                  )}
+                  {iaTexto && (
+                    <div className="space-y-3">
+                      {iaTexto.split('\n').filter(l => l.trim()).map((linea, i) => (
+                        <div key={i} className="flex gap-3">
+                          <span className="text-mezo-gold font-mono text-sm shrink-0">{i + 1}.</span>
+                          <p className="text-mezo-cream-dim font-body text-sm leading-relaxed">
+                            {linea.replace(/^\d+\.\s*/, '')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {!iaTexto && !iaError && !iaLoading && (
+                    <p className="text-mezo-stone font-body text-sm">
+                      Presiona "Analizar con IA" para recibir recomendaciones personalizadas basadas en tus ventas reales.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
+
+        {/* ─── Tab Food Cost ───────────────────────────────────────────── */}
+        {tabActivo === 'foodcost' && <FoodCost />}
       </main>
 
       {modalCierre && (
