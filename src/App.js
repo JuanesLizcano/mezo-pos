@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { EmployeeProvider } from './context/EmployeeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Landing from './pages/Landing';
@@ -14,6 +15,7 @@ import Mesas from './pages/Mesas';
 import Reportes from './pages/Reportes';
 import Empleados from './pages/Empleados';
 import Configuracion from './pages/Configuracion';
+import Arqueo from './pages/Arqueo';
 import PantallaCocina from './pages/PantallaCocina';
 
 // Redirige / al dashboard si está logueado, o a la Landing si no
@@ -34,6 +36,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ThemeProvider>
         <EmployeeProvider>
           <Routes>
             {/* Pública */}
@@ -52,6 +55,7 @@ function App() {
             <Route path="/reportes"  element={<ProtectedRoute><Reportes /></ProtectedRoute>} />
             <Route path="/empleados"      element={<ProtectedRoute><Empleados /></ProtectedRoute>} />
             <Route path="/configuracion"  element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
+            <Route path="/arqueo"         element={<ProtectedRoute><Arqueo /></ProtectedRoute>} />
             <Route path="/cocina"         element={<ProtectedRoute><PantallaCocina /></ProtectedRoute>} />
 
             {/* Fallback */}
@@ -77,6 +81,7 @@ function App() {
             }}
           />
         </EmployeeProvider>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );

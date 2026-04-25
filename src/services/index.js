@@ -41,9 +41,11 @@ export const createCuenta = (...a) => svc.createCuenta(...a);
 export const updateCuenta = (...a) => svc.updateCuenta(...a);
 export const getCuenta    = (...a) => svc.getCuenta(...a);
 
-// — Órdenes —
+// — Órdenes (flujo de 3 pasos) —
 export const getOrdenes  = (...a) => svc.getOrdenes(...a);
 export const createOrden = (...a) => svc.createOrden(...a);
+export const deliverOrden = (...a) => svc.deliverOrden(...a);
+export const createVenta = (...a) => svc.createVenta(...a);
 export const updateOrden = (...a) => svc.updateOrden(...a);
 
 // — Empleados —
@@ -64,3 +66,7 @@ export const updateTurno    = (...a) => svc.updateTurno(...a);
 // — Reportes —
 export const getKPIs         = (...a) => svc.getKPIs(...a);
 export const getVentasPorDia = (...a) => svc.getVentasPorDia(...a);
+
+// — Lealtad —
+export const getCliente      = (...a) => svc.getCliente(...a);
+export const registrarVisita = (...a) => svc.registrarVisita(...a);

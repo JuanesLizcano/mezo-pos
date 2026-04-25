@@ -139,6 +139,28 @@ function generarOrdenesDemo() {
 
 // ─── Estado mutable en memoria ───────────────────────────────────────────────
 
+// ─── Clientes y lealtad ──────────────────────────────────────────────────────
+// Mapa celular → { celular, visitas, ultimaVisita }
+
+const DB_CLIENTES = {};
+
+export async function getCliente(celular) {
+  await delay();
+  return DB_CLIENTES[celular] ?? null;
+}
+
+export async function registrarVisita(celular) {
+  await delay();
+  if (!DB_CLIENTES[celular]) {
+    DB_CLIENTES[celular] = { celular, visitas: 0, ultimaVisita: null };
+  }
+  DB_CLIENTES[celular].visitas    += 1;
+  DB_CLIENTES[celular].ultimaVisita = new Date();
+  return DB_CLIENTES[celular];
+}
+
+// ─── Estado mutable en memoria ───────────────────────────────────────────────
+
 const DB = {
   // role y planType alineados con los enums del backend
   users: [

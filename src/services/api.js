@@ -79,13 +79,18 @@ export const createCuenta  = (data)     => request('POST', '/api/cuentas', data)
 export const updateCuenta  = (id, data) => request('PUT',  `/api/cuentas/${id}`, data);
 export const getCuenta     = (id)       => request('GET',  `/api/cuentas/${id}`);
 
-// — Órdenes —
+// — Órdenes (flujo de 3 pasos del backend) —
 export const getOrdenes   = (params = {}) => {
   const query = new URLSearchParams(params).toString();
-  return request('GET', `/api/ordenes${query ? `?${query}` : ''}`);
+  return request('GET', `/api/orders${query ? `?${query}` : ''}`);
 };
-export const createOrden  = (data)     => request('POST', '/api/ordenes', data);
-export const updateOrden  = (id, data) => request('PUT',  `/api/ordenes/${id}`, data);
+// Paso 1: crear orden → estado OPEN
+export const createOrden  = (data)     => request('POST', '/api/orders', data);
+// Paso 2: marcar como entregada → estado DELIVERED
+export const deliverOrden = (id)       => request('POST', `/api/orders/${id}/deliver`);
+// Paso 3: cerrar venta con método de pago
+export const createVenta  = (data)     => request('POST', '/api/sales', data);
+export const updateOrden  = (id, data) => request('PUT',  `/api/orders/${id}`, data);
 
 // — Empleados —
 export const getEmpleados    = ()         => request('GET',    '/api/empleados');
@@ -108,3 +113,7 @@ export const getKPIs          = (desde, hasta) =>
   request('GET', `/api/reportes/kpis?desde=${desde}&hasta=${hasta}`);
 export const getVentasPorDia  = (desde, hasta) =>
   request('GET', `/api/reportes/ventas?desde=${desde}&hasta=${hasta}`);
+
+// — Lealtad —
+export const getCliente      = (celular) => request('GET',  `/api/clientes/${celular}`);
+export const registrarVisita = (celular) => request('POST', `/api/clientes/${celular}/visita`);
