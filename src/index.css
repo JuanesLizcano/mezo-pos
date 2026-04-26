@@ -22,6 +22,36 @@
   --mezo-stone:       #6B6055;
 }
 
+/* Variables del modo claro — se activan con data-theme="claro" en <html> */
+[data-theme="claro"] {
+  --mezo-ink:        #F4ECD8;
+  --mezo-ink-raised: #FFFFFF;
+  --mezo-ink-line:   #E0D8CC;
+  --mezo-ink-muted:  #EDE6D8;
+  --mezo-cream:      #141210;
+  --mezo-cream-dim:  #3A2E26;
+  --mezo-stone:      #8B7355;
+  --mezo-graphite:   #E8E0D0;
+}
+
+/* Animación de pulso para órdenes urgentes en cocina */
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+.animate-timer-pulse {
+  animation: timer-pulse 1.4s ease-in-out infinite;
+}
+
+/* Overrides Tailwind para modo claro */
+[data-theme="claro"] .bg-mezo-ink        { background-color: #F4ECD8 !important; }
+[data-theme="claro"] .bg-mezo-ink-raised { background-color: #FFFFFF !important; }
+[data-theme="claro"] .bg-mezo-ink-muted  { background-color: #EDE6D8 !important; }
+[data-theme="claro"] .border-mezo-ink-line { border-color: #E0D8CC !important; }
+[data-theme="claro"] .text-mezo-cream    { color: #141210 !important; }
+[data-theme="claro"] .text-mezo-cream-dim { color: #3A2E26 !important; }
+[data-theme="claro"] .text-mezo-stone    { color: #8B7355 !important; }
+
 /* Base: DM Sans como fuente global, fondo oscuro */
 @layer base {
   body {
@@ -31,5 +61,10 @@
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  [data-theme="claro"] body,
+  [data-theme="claro"] {
+    background-color: #F4ECD8;
+    color: #141210;
   }
 }

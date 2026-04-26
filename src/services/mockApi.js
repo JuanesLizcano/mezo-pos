@@ -64,12 +64,37 @@ const PRODUCTOS_INIT = [
 ];
 
 const MESAS_INIT = [
-  { id: 'mesa-1', numero: 1, nombre: 'Mesa 1', estado: 'ocupada',  ocupadaEn: new Date(Date.now() - 45 * 60000), total: 27000, personas: 3 },
-  { id: 'mesa-2', numero: 2, nombre: 'Mesa 2', estado: 'libre',    ocupadaEn: null, total: null },
-  { id: 'mesa-3', numero: 3, nombre: 'Mesa 3', estado: 'pagando',  ocupadaEn: new Date(Date.now() - 92 * 60000), total: 45000, personas: 4 },
-  { id: 'mesa-4', numero: 4, nombre: 'Mesa 4', estado: 'libre',    ocupadaEn: null, total: null },
-  { id: 'mesa-5', numero: 5, nombre: 'Mesa 5', estado: 'ocupada',  ocupadaEn: new Date(Date.now() - 22 * 60000), total: 13500, personas: 2 },
-  { id: 'mesa-6', numero: 6, nombre: 'Mesa 6', estado: 'libre',    ocupadaEn: null, total: null },
+  {
+    id: 'mesa-1', numero: 1, nombre: 'Mesa 1', estado: 'ocupada',
+    ocupadaEn: new Date(Date.now() - 45 * 60000), total: 27000, personas: 3,
+    lineas: [
+      { productId: 'p-04', nombre: 'Capuchino',        precio: 6500, cantidad: 2, subtotal: 13000 },
+      { productId: 'p-13', nombre: 'Croissant de jamón', precio: 4500, cantidad: 2, subtotal: 9000  },
+      { productId: 'p-08', nombre: 'Jugo de lulo',     precio: 5000, cantidad: 1, subtotal: 5000  },
+    ],
+  },
+  { id: 'mesa-2', numero: 2, nombre: 'Mesa 2', estado: 'libre',   ocupadaEn: null, total: null, lineas: null },
+  {
+    id: 'mesa-3', numero: 3, nombre: 'Mesa 3', estado: 'pagando',
+    ocupadaEn: new Date(Date.now() - 92 * 60000), total: 45000, personas: 4,
+    lineas: [
+      { productId: 'p-23', nombre: 'Bandeja paisa mini', precio: 25000, cantidad: 1, subtotal: 25000 },
+      { productId: 'p-08', nombre: 'Jugo de lulo',       precio: 5000,  cantidad: 2, subtotal: 10000 },
+      { productId: 'p-01', nombre: 'Café tinto',         precio: 3000,  cantidad: 2, subtotal: 6000  },
+      { productId: 'p-17', nombre: 'Buñuelo',            precio: 2000,  cantidad: 2, subtotal: 4000  },
+    ],
+  },
+  { id: 'mesa-4', numero: 4, nombre: 'Mesa 4', estado: 'libre',   ocupadaEn: null, total: null, lineas: null },
+  {
+    id: 'mesa-5', numero: 5, nombre: 'Mesa 5', estado: 'ocupada',
+    ocupadaEn: new Date(Date.now() - 22 * 60000), total: 13500, personas: 2,
+    lineas: [
+      { productId: 'p-08', nombre: 'Jugo de lulo', precio: 5000, cantidad: 1, subtotal: 5000 },
+      { productId: 'p-04', nombre: 'Capuchino',    precio: 6500, cantidad: 1, subtotal: 6500 },
+      { productId: 'p-17', nombre: 'Buñuelo',      precio: 2000, cantidad: 1, subtotal: 2000 },
+    ],
+  },
+  { id: 'mesa-6', numero: 6, nombre: 'Mesa 6', estado: 'libre',   ocupadaEn: null, total: null, lineas: null },
 ];
 
 const EMPLEADOS_INIT = [
@@ -137,6 +162,44 @@ function generarOrdenesDemo() {
   return ordenes.sort((a, b) => b.createdAt - a.createdAt);
 }
 
+// ─── Órdenes de cocina demo (muestran los tres estados del timer) ────────────
+
+const COCINA_DEMO = [
+  {
+    id: 'coc-001', status: 'OPEN', estadoCocina: 'preparando',
+    cocinaEn: new Date(Date.now() - 2.5 * 60000),
+    items: [
+      { productId: 'p-04', name: 'Capuchino',        unitPrice: 6500, quantity: 2, subtotal: 13000 },
+      { productId: 'p-13', name: 'Croissant de jamón', unitPrice: 4500, quantity: 1, subtotal: 4500  },
+    ],
+    subtotal: 17500, total: 17500, tip: null, paymentMethod: null, saleNumber: null,
+    tableId: 'mesa-1', employeeName: 'Carlos Muñoz', shiftId: null,
+    createdAt: new Date(Date.now() - 2.5 * 60000),
+  },
+  {
+    id: 'coc-002', status: 'OPEN', estadoCocina: 'preparando',
+    cocinaEn: new Date(Date.now() - 7.5 * 60000),
+    items: [
+      { productId: 'p-18', name: 'Changua',       unitPrice: 8000, quantity: 2, subtotal: 16000 },
+      { productId: 'p-07', name: 'Agua de panela', unitPrice: 3000, quantity: 2, subtotal: 6000  },
+    ],
+    subtotal: 22000, total: 22000, tip: null, paymentMethod: null, saleNumber: null,
+    tableId: 'mesa-3', employeeName: 'María García', shiftId: null,
+    createdAt: new Date(Date.now() - 7.5 * 60000),
+  },
+  {
+    id: 'coc-003', status: 'OPEN', estadoCocina: 'preparando',
+    cocinaEn: new Date(Date.now() - 11 * 60000),
+    items: [
+      { productId: 'p-19', name: 'Calentado paisa', unitPrice: 12000, quantity: 1, subtotal: 12000 },
+      { productId: 'p-01', name: 'Café tinto',      unitPrice: 3000,  quantity: 2, subtotal: 6000  },
+    ],
+    subtotal: 18000, total: 18000, tip: null, paymentMethod: null, saleNumber: null,
+    tableId: 'mesa-5', employeeName: 'Juanes Lizcano', shiftId: null,
+    createdAt: new Date(Date.now() - 11 * 60000),
+  },
+];
+
 // ─── Estado mutable en memoria ───────────────────────────────────────────────
 
 // ─── Clientes y lealtad ──────────────────────────────────────────────────────
@@ -179,7 +242,7 @@ const DB = {
   productos:    [...PRODUCTOS_INIT],
   mesas:        MESAS_INIT.map(m => ({ ...m })),
   cuentas:      [],
-  ordenes:      generarOrdenesDemo(),
+  ordenes:      [...COCINA_DEMO, ...generarOrdenesDemo()],
   empleados:    [...EMPLEADOS_INIT],
   movimientos:  [],
   turnos:       [],
@@ -418,6 +481,33 @@ export async function updateMesa(id, data) {
   return DB.mesas[idx];
 }
 
+export async function createMesa(data) {
+  await delay();
+  const siguienteNumero = DB.mesas.length
+    ? Math.max(...DB.mesas.map(m => m.numero)) + 1
+    : 1;
+  const numero = data.numero ?? siguienteNumero;
+  const mesa = {
+    id:       nextId(),
+    numero,
+    nombre:   data.nombre ?? `Mesa ${numero}`,
+    estado:   'libre',
+    ocupadaEn: null,
+    total:    null,
+    lineas:   null,
+  };
+  DB.mesas.push(mesa);
+  return mesa;
+}
+
+export async function deleteMesa(id) {
+  await delay();
+  const idx = DB.mesas.findIndex(m => m.id === id);
+  if (idx === -1) throw new Error('Mesa no encontrada.');
+  DB.mesas.splice(idx, 1);
+  return { ok: true };
+}
+
 export async function cambiarMesa(origenId, destinoId) {
   await delay();
   const origen  = DB.mesas.find(m => m.id === origenId);
@@ -483,22 +573,25 @@ export async function getOrdenes(params = {}) {
   return result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 }
 
-// Paso 1 — crea la orden con estado OPEN
+// Paso 1 — crea la orden con estado OPEN y la marca automáticamente como "preparando" en cocina
 export async function createOrden(data) {
   await delay();
+  const ahora = new Date();
   const orden = {
-    id:           nextId(),
-    status:       'OPEN',
-    items:        data.items ?? [],
-    subtotal:     data.items?.reduce((s, i) => s + i.subtotal, 0) ?? 0,
-    tip:          null,
-    total:        data.items?.reduce((s, i) => s + i.subtotal, 0) ?? 0,
+    id:            nextId(),
+    status:        'OPEN',
+    estadoCocina:  'preparando',
+    cocinaEn:      ahora,
+    items:         data.items ?? [],
+    subtotal:      data.items?.reduce((s, i) => s + i.subtotal, 0) ?? 0,
+    tip:           null,
+    total:         data.items?.reduce((s, i) => s + i.subtotal, 0) ?? 0,
     paymentMethod: null,
-    saleNumber:   null,
-    tableId:      data.tableId ?? null,
-    employeeName: data.employeeName ?? null,
-    shiftId:      data.shiftId ?? null,
-    createdAt:    new Date(),
+    saleNumber:    null,
+    tableId:       data.tableId ?? null,
+    employeeName:  data.employeeName ?? null,
+    shiftId:       data.shiftId ?? null,
+    createdAt:     ahora,
   };
   DB.ordenes.unshift(orden);
   return orden;

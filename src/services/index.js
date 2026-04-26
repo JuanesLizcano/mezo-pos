@@ -32,6 +32,8 @@ export const deleteCategoria = (...a) => svc.deleteCategoria(...a);
 
 // — Mesas —
 export const getMesas    = (...a) => svc.getMesas(...a);
+export const createMesa  = (...a) => svc.createMesa(...a);
+export const deleteMesa  = (...a) => svc.deleteMesa(...a);
 export const updateMesa  = (...a) => svc.updateMesa(...a);
 export const cambiarMesa = (...a) => svc.cambiarMesa(...a);
 

@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingCart, Printer, MessageCircle, User, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { pdf } from '@react-pdf/renderer';
-import { createOrden, deliverOrden, createVenta, createCuenta, getCliente, registrarVisita } from '../../services';
+import { createOrden, deliverOrden, createVenta, createCuenta, getCliente, registrarVisita, updateMesa } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployee } from '../../context/EmployeeContext';
 import { formatCOP } from '../../utils/formatters';
@@ -18,9 +19,11 @@ const METODOS = [
 
 const PROPINAS = [5, 10, 15];
 
-export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, onEliminar, onVaciar }) {
+export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, onEliminar, onVaciar, mesa }) {
   const { user, negocio, bumpVersion }   = useAuth();
   const { empleadoActivo, turnoId }       = useEmployee();
+  const navigate                          = useNavigate();
+
   const [metodo, setMetodo]               = useState('efectivo');
   const [recibidoRaw, setRecibidoRaw]     = useState('');
   const [loading, setLoading]             = useState(false);
@@ -29,8 +32,10 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
   const [cuentaNombre, setCuentaNombre]   = useState('');
   const [propinaPct, setPropinaPct]       = useState(null);
   const [celularLealtad, setCelularLealtad] = useState('');
-  const [clienteInfo, setClienteInfo]     = useState(null); // { visitas, frecuente }
-  const lealtadTimerRef = useRef(null);
+  const [clienteInfo, setClienteInfo]     = useState(null);
+  const [modalLiberar, setModalLiberar]   = useState(false);
+  const [liberando, setLiberando]         = useState(false);
+  const lealtadTimerRef                   = useRef(null);
 
   const propinaMonto    = propinaPct ? Math.round(total * propinaPct / 100) : 0;
   const totalConPropina = total + propinaMonto;
@@ -43,7 +48,6 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
     setRecibidoRaw(e.target.value.replace(/\D/g, ''));
   }
 
-  // Consulta el cliente al escribir 10 dígitos (con debounce 600ms)
   function handleCelularChange(e) {
     const val = e.target.value.replace(/\D/g, '').slice(0, 10);
     setCelularLealtad(val);
@@ -97,7 +101,6 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
     if (!puedeCobrar) return;
     setLoading(true);
     try {
-      // Items con los nombres de campo del backend
       const items = lineas.map(({ producto, cantidad }) => ({
         productId: producto.id,
         name:      producto.nombre,
@@ -106,18 +109,15 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
         subtotal:  producto.precio * cantidad,
       }));
 
-      // Paso 1 — POST /orders → estado OPEN
       const orden = await createOrden({
         items,
-        tableId:      null,
+        tableId:      mesa?.id ?? null,
         employeeName: empleadoActivo?.nombre ?? null,
         shiftId:      turnoId ?? null,
       });
 
-      // Paso 2 — POST /orders/{id}/deliver → estado DELIVERED
       await deliverOrden(orden.id);
 
-      // Paso 3 — POST /sales → cierra la venta con método de pago
       const paymentMethod = METODOS.find(m => m.id === metodo)?.backendValue ?? 'CASH';
       const venta = await createVenta({
         orderId:       orden.id,
@@ -132,12 +132,9 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
       bumpVersion();
       toast.success('Orden guardada ✓');
 
-      // Registrar visita de lealtad si hay celular
       let clienteFinal = null;
       if (celularLealtad.length === 10) {
-        try {
-          clienteFinal = await registrarVisita(celularLealtad);
-        } catch { /* silencioso */ }
+        try { clienteFinal = await registrarVisita(celularLealtad); } catch { /* silencioso */ }
       }
 
       setOrdenConfirmada({
@@ -152,15 +149,40 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
         cajero:     empleadoActivo?.nombre ?? user?.email,
         fecha:      new Date(),
         numFactura: venta.saleNumber,
-        // Lealtad: visitas actualizadas tras esta compra
-        clienteVisitas: clienteFinal?.visitas ?? null,
-        clienteFrecuente: clienteFinal ? clienteFinal.visitas >= 10 : false,
+        clienteVisitas:    clienteFinal?.visitas ?? null,
+        clienteFrecuente:  clienteFinal ? clienteFinal.visitas >= 10 : false,
       });
+
+      // Si hay mesa, mostrar modal de liberación
+      if (mesa) setModalLiberar(true);
     } catch {
       toast.error('Error al guardar la orden. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleLiberar() {
+    setLiberando(true);
+    try {
+      await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
+      bumpVersion();
+      setModalLiberar(false);
+      navigate('/mesas');
+    } catch {
+      toast.error('Error al liberar la mesa.');
+    } finally {
+      setLiberando(false);
+    }
+  }
+
+  async function handleCancelarLiberar() {
+    // La mesa pasa a "Pagando" para que puedan imprimir el ticket primero
+    try {
+      await updateMesa(mesa.id, { estado: 'pagando' });
+      bumpVersion();
+    } catch { /* silencioso */ }
+    setModalLiberar(false);
   }
 
   async function handleImprimir() {
@@ -177,14 +199,14 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
   function handleWhatsApp() {
     if (!ordenConfirmada) return;
     const { lineas: ls, subtotal, propina, total: t, metodo: met, fecha } = ordenConfirmada;
-    const fechaStr  = fecha.toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const items     = ls.map(l => `▫ ${l.quantity}× ${l.name}   ${formatCOP(l.subtotal)}`).join('\n');
+    const fechaStr   = fecha.toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const itemsTxt   = ls.map(l => `▫ ${l.quantity}× ${l.name}   ${formatCOP(l.subtotal)}`).join('\n');
     const propinaTxt = propina?.monto > 0 ? `\nPropina (${propina.porcentaje}%): ${formatCOP(propina.monto)}` : '';
     const metodoLabel = METODOS.find(m => m.id === met)?.label ?? met;
     const texto = [
       `*🧾 Ticket — ${negocio?.name ?? 'mezo'}*`,
       `Orden #${ordenConfirmada.id.slice(-6).toUpperCase()} | ${fechaStr}`,
-      '', items, '',
+      '', itemsTxt, '',
       `Subtotal: ${formatCOP(subtotal)}`,
       propinaTxt,
       `*Total: ${formatCOP(t)}*`,
@@ -209,11 +231,10 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
     const { metodo: met, cambio: c, total: t, subtotal, propina,
             clienteVisitas, clienteFrecuente } = ordenConfirmada;
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 px-5">
+      <div className="flex flex-col items-center justify-center h-full gap-4 px-5 relative">
         <span style={{ fontSize: 56 }}>{clienteFrecuente ? '🎉' : '✅'}</span>
         <p className="text-mezo-cream font-display text-2xl font-medium">¡Cobrado!</p>
 
-        {/* Badge cliente frecuente */}
         {clienteFrecuente && (
           <div className="w-full flex items-center gap-2 px-4 py-3 rounded-mezo-lg"
             style={{ background: 'rgba(200,144,63,0.12)', border: '1px solid rgba(200,144,63,0.4)' }}>
@@ -270,6 +291,34 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
           className="w-full bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm font-body transition">
           Nueva orden
         </button>
+
+        {/* Modal liberar mesa — se muestra encima de la confirmación */}
+        {modalLiberar && mesa && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            style={{ background: 'rgba(8,7,6,0.88)' }}>
+            <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-6 w-full max-w-xs shadow-lg">
+              <p className="text-mezo-stone text-xs uppercase tracking-widest font-body mb-1">Cobro completado</p>
+              <h3 className="text-mezo-cream font-body font-semibold text-lg mb-2">
+                ¿Liberar Mesa {mesa.numero}?
+              </h3>
+              <p className="text-mezo-stone font-body text-sm mb-5">
+                La mesa volverá a estar disponible. Si necesitas imprimir el ticket primero, cancela y hazlo desde aquí.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={handleCancelarLiberar}
+                  disabled={liberando}
+                  className="flex-1 border border-mezo-ink-line text-mezo-cream-dim font-semibold py-2.5 rounded-mezo-md text-sm font-body hover:bg-mezo-ink-muted transition disabled:opacity-40">
+                  Cancelar
+                </button>
+                <button onClick={handleLiberar}
+                  disabled={liberando}
+                  className="flex-[2] bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm font-body transition disabled:opacity-40">
+                  {liberando ? 'Liberando…' : 'Sí, liberar mesa'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -281,7 +330,7 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
         <div className="flex items-center gap-2">
           <ShoppingCart size={16} className="text-mezo-gold" />
           <span className="text-mezo-cream font-semibold font-body text-sm">
-            Orden {count > 0 && <span className="text-mezo-stone">({count})</span>}
+            {mesa ? `Mesa ${mesa.numero}` : 'Orden'}{count > 0 && <span className="text-mezo-stone"> ({count})</span>}
           </span>
         </div>
         {lineas.length > 0 && (
@@ -298,11 +347,20 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
             <span>Agrega productos al carrito</span>
           </div>
         ) : (
-          lineas.map(({ producto, cantidad }) => (
+          lineas.map(({ producto, cantidad, deMesa }) => (
             <div key={producto.id}
               className="flex items-center gap-3 bg-mezo-ink-muted rounded-mezo-md px-3 py-2">
               <div className="flex-1 min-w-0">
-                <p className="text-mezo-cream text-sm font-body font-medium truncate">{producto.nombre}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="text-mezo-cream text-sm font-body font-medium truncate">{producto.nombre}</p>
+                  {deMesa && (
+                    <span className="font-body flex-shrink-0"
+                      style={{ fontSize: 9, background: 'rgba(200,144,63,0.12)', color: '#C8903F',
+                               border: '1px solid rgba(200,144,63,0.3)', padding: '1px 5px', borderRadius: 4 }}>
+                      mesa
+                    </span>
+                  )}
+                </div>
                 <p className="text-mezo-stone text-xs font-mono">{formatCOP(producto.precio)}</p>
               </div>
               <div className="flex items-center gap-1.5">
@@ -428,7 +486,6 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
           />
         )}
 
-        {/* Campo celular para programa de lealtad */}
         {tipoCuenta === 'mostrador' && lineas.length > 0 && (
           <div>
             <label className="block text-xs font-body text-mezo-stone mb-1 uppercase tracking-widest">
@@ -436,21 +493,15 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
             </label>
             <div className="relative">
               <input
-                type="tel"
-                inputMode="numeric"
-                placeholder="300 123 4567"
-                value={celularLealtad}
-                onChange={handleCelularChange}
-                maxLength={10}
+                type="tel" inputMode="numeric" placeholder="300 123 4567"
+                value={celularLealtad} onChange={handleCelularChange} maxLength={10}
                 className="w-full px-3 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-sm rounded-mezo-md focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition"
               />
               {celularLealtad.length === 10 && clienteInfo !== null && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {clienteInfo.frecuente
                     ? <Star size={13} className="text-mezo-gold" />
-                    : <span className="text-mezo-stone font-body" style={{ fontSize: 10 }}>
-                        V.{clienteInfo.visitas + 1}
-                      </span>}
+                    : <span className="text-mezo-stone font-body" style={{ fontSize: 10 }}>V.{clienteInfo.visitas + 1}</span>}
                 </div>
               )}
             </div>
