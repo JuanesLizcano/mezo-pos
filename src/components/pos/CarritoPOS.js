@@ -33,10 +33,8 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
   const [propinaPct, setPropinaPct]       = useState(null);
   const [celularLealtad, setCelularLealtad] = useState('');
   const [clienteInfo, setClienteInfo]     = useState(null);
-  const [modalLiberar, setModalLiberar]   = useState(false);
   const [mostrarFactura, setMostrarFactura] = useState(false);
   const [datosCliente, setDatosCliente]   = useState({ nombre: '', telefono: '', email: '', tributario: '', comentario: '' });
-  const [liberando, setLiberando]         = useState(false);
   const lealtadTimerRef                   = useRef(null);
 
   const propinaMonto    = propinaPct ? Math.round(total * propinaPct / 100) : 0;
@@ -131,6 +129,13 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
         change:        metodo === 'efectivo' ? cambio : null,
       });
 
+      // Liberar la mesa automáticamente, sin modal de confirmación
+      if (mesa) {
+        try {
+          await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
+        } catch { /* la orden ya fue guardada, la liberación no es crítica */ }
+      }
+
       bumpVersion();
       toast.success('Orden guardada ✓');
 
@@ -152,40 +157,16 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
         fecha:      new Date(),
         numFactura: venta.saleNumber,
         cliente:    Object.values(datosCliente).some(v => v.trim()) ? { ...datosCliente } : null,
-        clienteVisitas:    clienteFinal?.visitas ?? null,
-        clienteFrecuente:  clienteFinal ? clienteFinal.visitas >= 10 : false,
+        clienteVisitas:   clienteFinal?.visitas ?? null,
+        clienteFrecuente: clienteFinal ? clienteFinal.visitas >= 10 : false,
+        esMesa:     Boolean(mesa),
+        mesaNumero: mesa?.numero ?? null,
       });
-
-      // Si hay mesa, mostrar modal de liberación
-      if (mesa) setModalLiberar(true);
     } catch {
       toast.error('Error al guardar la orden. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleLiberar() {
-    setLiberando(true);
-    try {
-      await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
-      bumpVersion();
-      setModalLiberar(false);
-      navigate('/mesas');
-    } catch {
-      toast.error('Error al liberar la mesa.');
-    } finally {
-      setLiberando(false);
-    }
-  }
-
-  async function handleCancelarLiberar() {
-    // La mesa pasa a "Pagando" para que puedan imprimir el ticket primero
-    try {
-      await updateMesa(mesa.id, { estado: 'pagando' });
-      bumpVersion();
-    } catch { /* silencioso */ }
-    setModalLiberar(false);
   }
 
   async function handleImprimir() {
@@ -231,22 +212,35 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
     setMostrarFactura(false);
   }
 
-  // ── Pantalla de confirmación ────────────────────────────────────────────────
+  // ── Pantalla de confirmación ─────────────────────────────────────────────────
   if (ordenConfirmada) {
     const { metodo: met, cambio: c, total: t, subtotal, propina,
-            clienteVisitas, clienteFrecuente } = ordenConfirmada;
+            clienteVisitas, clienteFrecuente, esMesa, mesaNumero } = ordenConfirmada;
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 px-5 relative">
-        <span style={{ fontSize: 56 }}>{clienteFrecuente ? '🎉' : '✅'}</span>
-        <p className="text-mezo-cream font-display text-2xl font-medium">¡Cobrado!</p>
+      <div className="flex flex-col items-center justify-center h-full gap-4 px-5">
 
+        <span style={{ fontSize: 56 }}>{clienteFrecuente ? '🎉' : '✅'}</span>
+
+        <div className="text-center">
+          <p className="text-mezo-cream font-display text-2xl font-medium leading-tight">
+            Cobro completado
+          </p>
+          <p className="font-mono font-bold text-mezo-gold text-lg mt-0.5">{formatCOP(t)}</p>
+          {esMesa && (
+            <p className="text-mezo-verde font-body text-sm mt-0.5">
+              Mesa {mesaNumero} liberada ✓
+            </p>
+          )}
+        </div>
+
+        {/* Lealtad */}
         {clienteFrecuente && (
           <div className="w-full flex items-center gap-2 px-4 py-3 rounded-mezo-lg"
             style={{ background: 'rgba(200,144,63,0.12)', border: '1px solid rgba(200,144,63,0.4)' }}>
             <Star size={16} className="text-mezo-gold flex-shrink-0" />
             <div>
               <p className="text-mezo-gold font-body font-semibold text-sm">¡Cliente frecuente!</p>
-              <p className="text-mezo-stone font-body text-xs">{clienteVisitas} compras · Ofrécele un beneficio especial 🙌</p>
+              <p className="text-mezo-stone font-body text-xs">{clienteVisitas} compras · Ofrécele un beneficio 🙌</p>
             </div>
           </div>
         )}
@@ -256,6 +250,7 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
           </p>
         )}
 
+        {/* Desglose */}
         <div className="w-full bg-mezo-ink-muted rounded-mezo-lg px-4 py-3 space-y-1.5 text-sm font-body">
           {propina?.monto > 0 && (
             <>
@@ -281,48 +276,35 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
           )}
         </div>
 
+        {/* Acciones grandes */}
         <div className="flex gap-3 w-full">
           <button onClick={handleImprimir}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-mezo-ink-line text-mezo-cream-dim hover:text-mezo-cream hover:border-mezo-gold/40 rounded-mezo-md text-sm font-body font-medium transition">
-            <Printer size={14} /> Imprimir PDF
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-mezo-md text-sm font-body font-semibold border transition"
+            style={{ background: 'rgba(200,144,63,0.1)', borderColor: 'rgba(200,144,63,0.4)', color: '#C8903F' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,144,63,0.2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(200,144,63,0.1)'; }}>
+            <Printer size={15} /> Imprimir ticket
           </button>
           <button onClick={handleWhatsApp}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-mezo-verde/40 text-mezo-verde hover:bg-mezo-verde/10 rounded-mezo-md text-sm font-body font-medium transition">
-            <MessageCircle size={14} /> WhatsApp
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-mezo-md text-sm font-body font-semibold border transition"
+            style={{ background: 'rgba(61,170,104,0.1)', borderColor: 'rgba(61,170,104,0.4)', color: '#3DAA68' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(61,170,104,0.2)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(61,170,104,0.1)'; }}>
+            <MessageCircle size={15} /> WhatsApp
           </button>
         </div>
 
-        <button onClick={handleNuevaOrden}
-          className="w-full bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm font-body transition">
-          Nueva orden
-        </button>
-
-        {/* Modal liberar mesa — se muestra encima de la confirmación */}
-        {modalLiberar && mesa && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: 'rgba(8,7,6,0.88)' }}>
-            <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-6 w-full max-w-xs shadow-lg">
-              <p className="text-mezo-stone text-xs uppercase tracking-widest font-body mb-1">Cobro completado</p>
-              <h3 className="text-mezo-cream font-body font-semibold text-lg mb-2">
-                ¿Liberar Mesa {mesa.numero}?
-              </h3>
-              <p className="text-mezo-stone font-body text-sm mb-5">
-                La mesa volverá a estar disponible. Si necesitas imprimir el ticket primero, cancela y hazlo desde aquí.
-              </p>
-              <div className="flex gap-2">
-                <button onClick={handleCancelarLiberar}
-                  disabled={liberando}
-                  className="flex-1 border border-mezo-ink-line text-mezo-cream-dim font-semibold py-2.5 rounded-mezo-md text-sm font-body hover:bg-mezo-ink-muted transition disabled:opacity-40">
-                  Cancelar
-                </button>
-                <button onClick={handleLiberar}
-                  disabled={liberando}
-                  className="flex-[2] bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm font-body transition disabled:opacity-40">
-                  {liberando ? 'Liberando…' : 'Sí, liberar mesa'}
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Cerrar: si hay mesa → ir a mesas, si no → nueva orden */}
+        {esMesa ? (
+          <button onClick={() => { handleNuevaOrden(); navigate('/mesas'); }}
+            className="w-full border border-mezo-ink-line text-mezo-cream-dim hover:text-mezo-cream hover:border-mezo-gold/30 font-semibold py-2.5 rounded-mezo-md text-sm font-body transition">
+            Cerrar
+          </button>
+        ) : (
+          <button onClick={handleNuevaOrden}
+            className="w-full bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm font-body transition">
+            Nueva orden
+          </button>
         )}
       </div>
     );
@@ -535,39 +517,29 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
 
             {mostrarFactura && (
               <div className="mt-2 space-y-1.5">
-                <input
-                  type="text"
-                  placeholder="Nombre o razón social"
+                <input type="text" placeholder="Nombre o razón social"
                   value={datosCliente.nombre}
                   onChange={e => setDatosCliente(p => ({ ...p, nombre: e.target.value }))}
                   className="w-full px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
                 />
                 <div className="flex gap-1.5">
-                  <input
-                    type="tel"
-                    placeholder="Teléfono"
+                  <input type="tel" placeholder="Teléfono"
                     value={datosCliente.telefono}
                     onChange={e => setDatosCliente(p => ({ ...p, telefono: e.target.value }))}
                     className="flex-1 px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
                   />
-                  <input
-                    type="text"
-                    placeholder="No. tributario"
+                  <input type="text" placeholder="No. tributario"
                     value={datosCliente.tributario}
                     onChange={e => setDatosCliente(p => ({ ...p, tributario: e.target.value }))}
                     className="flex-1 px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
                   />
                 </div>
-                <input
-                  type="email"
-                  placeholder="Correo electrónico"
+                <input type="email" placeholder="Correo electrónico"
                   value={datosCliente.email}
                   onChange={e => setDatosCliente(p => ({ ...p, email: e.target.value }))}
                   className="w-full px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
                 />
-                <input
-                  type="text"
-                  placeholder="Comentario (ej: Para contabilidad empresa X)"
+                <input type="text" placeholder="Comentario (ej: Para contabilidad empresa X)"
                   value={datosCliente.comentario}
                   onChange={e => setDatosCliente(p => ({ ...p, comentario: e.target.value }))}
                   className="w-full px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
