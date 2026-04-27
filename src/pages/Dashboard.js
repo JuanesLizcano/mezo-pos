@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useOrdenes } from '../hooks/useOrdenes';
 import Navbar from '../components/layout/Navbar';
+import { formatCOP } from '../utils/formatters';
 
 const MODULOS = [
   { titulo: 'POS / Caja',  descripcion: 'Tomar y cobrar órdenes',  emoji: '🧾', ruta: '/pos' },
@@ -13,75 +16,122 @@ const MODULOS = [
 
 const DISPONIBLES = ['/productos', '/pos', '/mesas', '/cocina', '/reportes', '/empleados'];
 
+function getSaludo() {
+  const h = new Date().getHours();
+  if (h >= 5  && h < 12) return { texto: 'Buenos días',   emoji: '☀️' };
+  if (h >= 12 && h < 19) return { texto: 'Buenas tardes', emoji: '🌤️' };
+  return                         { texto: 'Buenas noches', emoji: '🌙' };
+}
+
+function getFechaEspanol() {
+  return new Date().toLocaleDateString('es-CO', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  });
+}
+
 export default function Dashboard() {
-  const { negocio } = useAuth();
-  const navigate    = useNavigate();
+  const { negocio, user } = useAuth();
+  const navigate = useNavigate();
+  const saludo   = useMemo(getSaludo, []);
+  const fecha    = useMemo(getFechaEspanol, []);
+
+  const hoy = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
+  const { ordenes } = useOrdenes(hoy);
+
+  const ventasHoy    = ordenes.filter(o => o.status === 'PAID').reduce((s, o) => s + o.total, 0);
+  const ordenesHoy   = ordenes.filter(o => o.status === 'PAID').length;
+  const ticketProm   = ordenesHoy ? Math.round(ventasHoy / ordenesHoy) : 0;
 
   return (
-    <div className="h-screen bg-mezo-ink flex flex-col overflow-hidden">
-      <Navbar />
+    <div className="h-screen flex flex-col overflow-hidden" style={{ position: 'relative' }}>
+      {/* Background image + overlay */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 0,
+        backgroundImage: 'url(https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=80)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+      }} />
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'rgba(8,7,6,0.88)' }} />
 
-      <main className="flex-1 p-8 max-w-7xl mx-auto w-full flex flex-col overflow-hidden">
-        {/* Encabezado */}
-        <div className="mb-8">
-          <p className="text-mezo-stone uppercase tracking-widest text-xs mb-2 font-body">
-            Panel principal
-          </p>
-          <h1
-            className="text-mezo-cream font-display font-medium leading-none"
-            style={{ fontSize: 52, letterSpacing: '-0.025em', fontVariationSettings: '"SOFT" 50, "opsz" 72' }}
-          >
-            {negocio ? negocio.nombre : 'Bienvenido a mezo'}
-          </h1>
-          {negocio && (
-            <div className="flex items-center gap-3 mt-3">
-              <span className="text-mezo-stone text-sm font-body">Plan activo</span>
-              <span
-                className="capitalize font-semibold text-sm px-3 py-1 rounded-mezo-md font-body"
-                style={{ background: 'rgba(200,144,63,0.15)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.3)' }}
-              >
-                {negocio.plan}
-              </span>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Navbar />
+
+        <main className="flex-1 p-8 max-w-7xl mx-auto w-full flex flex-col overflow-hidden">
+
+          {/* Greeting + date */}
+          <div className="mb-6">
+            <p className="text-mezo-stone uppercase tracking-widest text-xs mb-1 font-body capitalize">{fecha}</p>
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-mezo-cream font-display leading-none"
+                style={{ fontSize: 52, letterSpacing: '-0.025em', fontVariationSettings: '"SOFT" 50, "opsz" 72',
+                         fontStyle: 'italic', fontWeight: 500 }}>
+                {saludo.texto}
+              </h1>
+              <span style={{ fontSize: 36 }}>{saludo.emoji}</span>
             </div>
-          )}
-        </div>
+            {negocio && (
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-mezo-stone text-sm font-body">{negocio.name}</span>
+                <span className="capitalize font-semibold text-sm px-3 py-0.5 rounded-mezo-md font-body"
+                  style={{ background: 'rgba(200,144,63,0.15)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.3)' }}>
+                  {user?.planType ?? '—'}
+                </span>
+              </div>
+            )}
+          </div>
 
-        {/* Grid de módulos — 3×2, cards de altura fija */}
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          style={{ gap: 16, gridTemplateRows: 'repeat(2, 120px)' }}
-        >
-          {MODULOS.map(({ titulo, descripcion, emoji, ruta }) => {
-            const disponible = DISPONIBLES.includes(ruta);
-            return (
-              <button
-                key={ruta}
-                onClick={() => disponible && navigate(ruta)}
-                disabled={!disponible}
-                className={`bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl
-                  flex flex-col items-center justify-center text-center w-full h-full transition px-6
-                  ${disponible
-                    ? 'hover:border-mezo-gold hover:shadow-mezo-gold cursor-pointer'
-                    : 'opacity-40 cursor-not-allowed'}`}
-              >
-                <span style={{ fontSize: 36, lineHeight: 1 }}>{emoji}</span>
-                <h3 className="font-semibold text-mezo-cream font-body mt-2" style={{ fontSize: 18 }}>
-                  {titulo}
-                </h3>
-                <p className="text-mezo-stone mt-0.5 font-body" style={{ fontSize: 13 }}>
-                  {descripcion}
-                </p>
-                {!disponible && (
-                  <span className="text-mezo-gold-soft font-medium mt-1 inline-block font-body"
-                    style={{ fontSize: 11 }}>
-                    Próximamente
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </main>
+          {/* KPI chips */}
+          <div className="flex gap-3 mb-6 flex-shrink-0">
+            <KpiChip label="Ventas hoy"    valor={formatCOP(ventasHoy)} color="#C8903F" />
+            <KpiChip label="Órdenes hoy"   valor={String(ordenesHoy)}   color="#3DAA68" />
+            <KpiChip label="Ticket promedio" valor={formatCOP(ticketProm)} color="#D9A437" />
+          </div>
+
+          {/* Module grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            style={{ gap: 16, gridTemplateRows: 'repeat(2, 120px)' }}>
+            {MODULOS.map(({ titulo, descripcion, emoji, ruta }) => {
+              const disponible = DISPONIBLES.includes(ruta);
+              return (
+                <button key={ruta}
+                  onClick={() => disponible && navigate(ruta)}
+                  disabled={!disponible}
+                  className={`rounded-mezo-xl flex flex-col items-center justify-center text-center w-full h-full transition px-6
+                    ${disponible
+                      ? 'hover:border-mezo-gold hover:shadow-mezo-gold cursor-pointer'
+                      : 'opacity-40 cursor-not-allowed'}`}
+                  style={{
+                    background: 'rgba(20,17,14,0.7)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}>
+                  <span style={{ fontSize: 36, lineHeight: 1 }}>{emoji}</span>
+                  <h3 className="font-semibold text-mezo-cream font-body mt-2" style={{ fontSize: 18 }}>{titulo}</h3>
+                  <p className="text-mezo-stone mt-0.5 font-body" style={{ fontSize: 13 }}>{descripcion}</p>
+                  {!disponible && (
+                    <span className="text-mezo-gold-soft font-medium mt-1 inline-block font-body" style={{ fontSize: 11 }}>
+                      Próximamente
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function KpiChip({ label, valor, color }) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-2.5 rounded-mezo-lg"
+      style={{ background: 'rgba(20,17,14,0.7)', backdropFilter: 'blur(12px)',
+               WebkitBackdropFilter: 'blur(12px)', border: `1px solid ${color}30` }}>
+      <div>
+        <p className="text-mezo-stone font-body uppercase tracking-widest" style={{ fontSize: 9 }}>{label}</p>
+        <p className="font-mono font-bold text-base leading-tight" style={{ color }}>{valor}</p>
+      </div>
     </div>
   );
 }

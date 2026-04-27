@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Settings } from 'lucide-react';
-import { updateNegocio } from '../services';
+import { Settings, Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { updateNegocio, getZonas, createZona, updateZona, deleteZona } from '../services';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import Navbar from '../components/layout/Navbar';
@@ -47,6 +47,150 @@ function Seccion({ titulo, children }) {
   );
 }
 
+function SeccionZonas() {
+  const [zonas, setZonas]       = useState([]);
+  const [editando, setEditando] = useState(null); // { id, nombre, color } | null
+  const [nuevo, setNuevo]       = useState(null);  // { nombre, color } | null
+  const [saving, setSaving]     = useState(false);
+
+  useEffect(() => {
+    getZonas().then(setZonas).catch(() => {});
+  }, []);
+
+  async function handleCrear() {
+    if (!nuevo?.nombre?.trim()) return;
+    setSaving(true);
+    try {
+      const z = await createZona({ nombre: nuevo.nombre.trim(), color: nuevo.color ?? '#C8903F' });
+      setZonas(prev => [...prev, z]);
+      setNuevo(null);
+      toast.success('Zona creada ✓');
+    } catch {
+      toast.error('Error al crear la zona.');
+    } finally { setSaving(false); }
+  }
+
+  async function handleActualizar() {
+    if (!editando?.nombre?.trim()) return;
+    setSaving(true);
+    try {
+      const z = await updateZona(editando.id, { nombre: editando.nombre.trim(), color: editando.color });
+      setZonas(prev => prev.map(z2 => z2.id === z.id ? z : z2));
+      setEditando(null);
+      toast.success('Zona actualizada ✓');
+    } catch {
+      toast.error('Error al actualizar la zona.');
+    } finally { setSaving(false); }
+  }
+
+  async function handleEliminar(id) {
+    try {
+      await deleteZona(id);
+      setZonas(prev => prev.filter(z => z.id !== id));
+      toast.success('Zona eliminada ✓');
+    } catch (err) {
+      toast.error(err.message ?? 'Error al eliminar la zona.');
+    }
+  }
+
+  return (
+    <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-6">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-mezo-cream font-body font-semibold text-base">Zonas del restaurante</h2>
+        {!nuevo && (
+          <button onClick={() => setNuevo({ nombre: '', color: '#C8903F' })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-mezo-md text-xs font-body font-semibold border transition"
+            style={{ background: 'rgba(200,144,63,0.1)', borderColor: 'rgba(200,144,63,0.4)', color: '#C8903F' }}>
+            <Plus size={12} /> Nueva zona
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {zonas.map(z => (
+          <div key={z.id} className="flex items-center gap-3 px-3 py-2.5 rounded-mezo-md border border-mezo-ink-line">
+            {editando?.id === z.id ? (
+              <>
+                <input type="color" value={editando.color}
+                  onChange={e => setEditando(prev => ({ ...prev, color: e.target.value }))}
+                  className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0" />
+                <input type="text" value={editando.nombre}
+                  onChange={e => setEditando(prev => ({ ...prev, nombre: e.target.value }))}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') handleActualizar(); if (e.key === 'Escape') setEditando(null); }}
+                  className="flex-1 px-2 py-1 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream text-sm rounded-mezo-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold font-body"
+                />
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={handleActualizar} disabled={saving}
+                    className="p-1.5 rounded-mezo-sm transition hover:bg-mezo-verde/20"
+                    style={{ color: '#3DAA68' }}>
+                    <Check size={13} />
+                  </button>
+                  <button onClick={() => setEditando(null)}
+                    className="p-1.5 rounded-mezo-sm transition hover:bg-mezo-rojo/20"
+                    style={{ color: '#C8573F' }}>
+                    <X size={13} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: z.color ?? '#C8903F' }} />
+                <span className="flex-1 text-mezo-cream font-body text-sm">{z.nombre}</span>
+                <div className="flex gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition"
+                  style={{ opacity: 1 }}>
+                  <button onClick={() => setEditando({ ...z })}
+                    className="p-1.5 rounded-mezo-sm text-mezo-stone hover:text-mezo-cream transition">
+                    <Pencil size={12} />
+                  </button>
+                  <button onClick={() => handleEliminar(z.id)}
+                    className="p-1.5 rounded-mezo-sm text-mezo-stone hover:text-mezo-rojo transition">
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+
+        {/* Fila de nueva zona */}
+        {nuevo && (
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-mezo-md border border-mezo-gold/40 bg-mezo-gold/5">
+            <input type="color" value={nuevo.color}
+              onChange={e => setNuevo(prev => ({ ...prev, color: e.target.value }))}
+              className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0" />
+            <input type="text" value={nuevo.nombre}
+              onChange={e => setNuevo(prev => ({ ...prev, nombre: e.target.value }))}
+              placeholder="Nombre de la zona…"
+              autoFocus
+              onKeyDown={e => { if (e.key === 'Enter') handleCrear(); if (e.key === 'Escape') setNuevo(null); }}
+              className="flex-1 px-2 py-1 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone text-sm rounded-mezo-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold font-body"
+            />
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={handleCrear} disabled={saving || !nuevo.nombre.trim()}
+                className="p-1.5 rounded-mezo-sm transition hover:bg-mezo-verde/20 disabled:opacity-40"
+                style={{ color: '#3DAA68' }}>
+                <Check size={13} />
+              </button>
+              <button onClick={() => setNuevo(null)}
+                className="p-1.5 rounded-mezo-sm transition hover:bg-mezo-rojo/20"
+                style={{ color: '#C8573F' }}>
+                <X size={13} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {zonas.length === 0 && !nuevo && (
+          <p className="text-mezo-stone font-body text-sm text-center py-4">
+            Sin zonas. Crea una para organizar tus mesas.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Configuracion() {
   const { negocio, bumpVersion }        = useAuth();
   const { colorPrimario, setColorPrimario } = useTheme();
@@ -63,7 +207,7 @@ export default function Configuracion() {
     if (!negocio) return;
     setRazonSocial(negocio.razonSocial ?? '');
     setNit(negocio.nit ?? '');
-    setDireccion(negocio.direccionFiscal ?? negocio.direccion ?? '');
+    setDireccion(negocio.direccionFiscal ?? negocio.address ?? '');
     setTelefono(negocio.telefono ?? '');
     setRegimen(negocio.regimenTributario ?? 'simplificado');
     setColorHex(negocio.colorPrimario ?? '#C8903F');
@@ -186,6 +330,8 @@ export default function Configuracion() {
               Aplicar color
             </button>
           </Seccion>
+
+          <SeccionZonas />
 
         </div>
       </main>

@@ -224,6 +224,10 @@ export async function registrarVisita(celular) {
 
 // ─── Estado mutable en memoria ───────────────────────────────────────────────
 
+const ZONAS_INIT = [
+  { id: 'zona-1', nombre: 'Salón principal', color: '#C8903F' },
+];
+
 const DB = {
   // role y planType alineados con los enums del backend
   users: [
@@ -240,7 +244,8 @@ const DB = {
   negocios:     { 'neg-001': { ...NEGOCIO_DEMO } },
   categorias:   [...CATEGORIAS_INIT],
   productos:    [...PRODUCTOS_INIT],
-  mesas:        MESAS_INIT.map(m => ({ ...m })),
+  zonas:        [...ZONAS_INIT],
+  mesas:        MESAS_INIT.map(m => ({ ...m, zonaId: 'zona-1' })),
   cuentas:      [],
   ordenes:      [...COCINA_DEMO, ...generarOrdenesDemo()],
   empleados:    [...EMPLEADOS_INIT],
@@ -495,6 +500,7 @@ export async function createMesa(data) {
     ocupadaEn: null,
     total:    null,
     lineas:   null,
+    zonaId:   data.zonaId ?? 'zona-1',
   };
   DB.mesas.push(mesa);
   return mesa;
@@ -505,6 +511,36 @@ export async function deleteMesa(id) {
   const idx = DB.mesas.findIndex(m => m.id === id);
   if (idx === -1) throw new Error('Mesa no encontrada.');
   DB.mesas.splice(idx, 1);
+  return { ok: true };
+}
+
+// ─── Zonas ────────────────────────────────────────────────────────────────────
+
+export async function getZonas() {
+  await delay();
+  return [...DB.zonas];
+}
+
+export async function createZona(data) {
+  await delay();
+  const zona = { id: nextId(), ...data };
+  DB.zonas.push(zona);
+  return zona;
+}
+
+export async function updateZona(id, data) {
+  await delay();
+  const idx = DB.zonas.findIndex(z => z.id === id);
+  if (idx === -1) throw new Error('Zona no encontrada.');
+  DB.zonas[idx] = { ...DB.zonas[idx], ...data };
+  return DB.zonas[idx];
+}
+
+export async function deleteZona(id) {
+  await delay();
+  const tieneMesas = DB.mesas.some(m => m.zonaId === id);
+  if (tieneMesas) throw new Error('No puedes eliminar una zona que tiene mesas asignadas.');
+  DB.zonas = DB.zonas.filter(z => z.id !== id);
   return { ok: true };
 }
 

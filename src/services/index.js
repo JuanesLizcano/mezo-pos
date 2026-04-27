@@ -69,6 +69,12 @@ export const updateTurno    = (...a) => svc.updateTurno(...a);
 export const getKPIs         = (...a) => svc.getKPIs(...a);
 export const getVentasPorDia = (...a) => svc.getVentasPorDia(...a);
 
+// — Zonas —
+export const getZonas    = (...a) => svc.getZonas(...a);
+export const createZona  = (...a) => svc.createZona(...a);
+export const updateZona  = (...a) => svc.updateZona(...a);
+export const deleteZona  = (...a) => svc.deleteZona(...a);
+
 // — Lealtad —
 export const getCliente      = (...a) => svc.getCliente(...a);
 export const registrarVisita = (...a) => svc.registrarVisita(...a);

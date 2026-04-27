@@ -91,7 +91,7 @@ export default function FoodCost() {
           <span className="text-right">Precio venta</span>
           <span className="text-right">Costo</span>
           <span className="text-right">Margen COP</span>
-          <span className="text-right">Margen %</span>
+          <span className="text-center">Margen %</span>
         </div>
 
         {/* Filas */}
@@ -117,7 +117,7 @@ export default function FoodCost() {
                 {formatCOP(p.margenCOP)}
               </span>
 
-              <div className="flex justify-end">
+              <div className="flex justify-center">
                 <span className="text-xs font-body font-semibold px-2.5 py-1 rounded-full"
                   style={{ background: `${color}18`, color, border: `1px solid ${color}40` }}>
                   {p.margenPct}% · {labelMargen(p.margenPct)}
