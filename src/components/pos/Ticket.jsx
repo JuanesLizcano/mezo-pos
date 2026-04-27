@@ -32,7 +32,7 @@ function formatCOPPDF(n) {
   return `$${new Intl.NumberFormat('es-CO').format(Math.round(n))}`;
 }
 
-export default function TicketPDF({ orden, negocio }) {
+export default function TicketPDF({ orden, negocio, tituloOrden }) {
   const {
     id, lineas = [], subtotal = 0, propina = null,
     total = 0, metodo, recibido, cambio, cajero, fecha, numFactura, cliente,
@@ -88,6 +88,13 @@ export default function TicketPDF({ orden, negocio }) {
             <Text style={S.labelTxt}>Cajero</Text>
             <Text style={S.valorTxt}>{cajero}</Text>
           </View>
+        )}
+
+        {/* Mesa / persona en división de cuenta */}
+        {tituloOrden && (
+          <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', textAlign: 'center', color: '#444', marginTop: 3, marginBottom: 1 }}>
+            {tituloOrden}
+          </Text>
         )}
 
         {/* Datos del cliente para factura */}

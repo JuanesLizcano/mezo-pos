@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Sparkles, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useDia } from '../context/DiaContext';
@@ -8,7 +8,6 @@ import GraficaVentas from '../components/reportes/GraficaVentas';
 import KPIs, { calcularKPIs } from '../components/reportes/KPIs';
 import ModalCierreDia from '../components/reportes/ModalCierreDia';
 import FoodCost from '../components/reportes/FoodCost';
-import { analizarVentas } from '../services/claude';
 
 const PERIODOS = [
   { id: 'hoy',       label: 'Hoy' },
@@ -96,10 +95,6 @@ export default function Reportes() {
   const [tabActivo, setTabActivo]       = useState('ventas');
   const [periodo, setPeriodo]           = useState('hoy');
   const [modalCierre, setModalCierre]   = useState(false);
-  const [iaTexto, setIaTexto]           = useState('');
-  const [iaLoading, setIaLoading]       = useState(false);
-  const [iaError, setIaError]           = useState('');
-
   const { desde, hasta } = useMemo(() => calcularRango(periodo), [periodo]);
   const { ordenes, loading } = useOrdenes(desde, hasta);
 
@@ -109,36 +104,6 @@ export default function Reportes() {
   function handleEmpezarDia() {
     abrirDia();
     toast.success('¡Buen día! Turno abierto ✓');
-  }
-
-  async function handleIA() {
-    setIaLoading(true);
-    setIaError('');
-    setIaTexto('');
-    try {
-      const resumen = {
-        periodo,
-        totalVendido:    kpis.total,
-        numOrdenes:      kpis.numOrdenes,
-        ticketPromedio:  kpis.ticketPromedio,
-        mejorHora:       kpis.mejorHora,
-        productoTop:     kpis.productoTop,
-        metodoPagoTop:   kpis.metodoPagoTop,
-        datosGrafica:    grafData,
-      };
-      const texto = await analizarVentas(resumen);
-      setIaTexto(texto);
-    } catch (err) {
-      if (err.message === 'API_KEY_MISSING') {
-        setIaError('Configura REACT_APP_ANTHROPIC_API_KEY en tu .env para activar el análisis IA.');
-        toast.error('Falta la API key de Claude en .env');
-      } else {
-        setIaError('Error al conectar con Claude. Revisa tu API key o el proxy de CORS.');
-        toast.error('Error al analizar con IA');
-      }
-    } finally {
-      setIaLoading(false);
-    }
   }
 
   return (
@@ -208,46 +173,50 @@ export default function Reportes() {
                   <GraficaVentas datos={grafData} titulo="Ventas por período" />
                 </div>
 
-                {/* Análisis IA */}
-                <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className="text-mezo-stone uppercase tracking-widest font-body" style={{ fontSize: 10 }}>
-                        Claude AI
-                      </p>
-                      <p className="text-mezo-cream font-body font-semibold text-sm mt-0.5">
-                        Análisis inteligente de ventas
-                      </p>
-                    </div>
-                    <button onClick={handleIA} disabled={iaLoading}
-                      className="flex items-center gap-2 px-4 py-2 bg-mezo-gold/15 border border-mezo-gold/40 text-mezo-gold hover:bg-mezo-gold/25 rounded-mezo-md text-sm font-body font-medium transition disabled:opacity-50">
-                      <Sparkles size={14} />
-                      {iaLoading ? 'Analizando...' : 'Analizar con IA'}
-                    </button>
+                {/* Análisis IA — Próximamente */}
+                <div className="relative bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl p-5">
+                  <span className="absolute top-4 right-4 text-xs font-semibold font-body px-2.5 py-1 rounded-full"
+                    style={{ background: 'rgba(200,144,63,0.15)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.3)' }}>
+                    Próximamente
+                  </span>
+
+                  <div className="mb-4">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-body font-semibold px-2.5 py-1 rounded-full"
+                      style={{ background: 'rgba(200,144,63,0.12)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.25)' }}>
+                      ✨ IA · Próximamente
+                    </span>
+                    <p className="text-mezo-cream font-body font-semibold text-sm mt-3">
+                      Análisis inteligente de ventas
+                    </p>
+                    <p className="text-mezo-stone font-body text-sm mt-2 leading-relaxed">
+                      Pronto podrás recibir recomendaciones personalizadas basadas en tus ventas reales:
+                      productos más rentables, estrategias por horario, predicción de demanda y más.
+                    </p>
                   </div>
 
-                  {iaError && (
-                    <p className="text-mezo-stone font-body text-sm bg-mezo-ink-muted rounded-mezo-md px-4 py-3">
-                      {iaError}
-                    </p>
-                  )}
-                  {iaTexto && (
-                    <div className="space-y-3">
-                      {iaTexto.split('\n').filter(l => l.trim()).map((linea, i) => (
-                        <div key={i} className="flex gap-3">
-                          <span className="text-mezo-gold font-mono text-sm shrink-0">{i + 1}.</span>
-                          <p className="text-mezo-cream-dim font-body text-sm leading-relaxed">
-                            {linea.replace(/^\d+\.\s*/, '')}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {!iaTexto && !iaError && !iaLoading && (
-                    <p className="text-mezo-stone font-body text-sm">
-                      Presiona "Analizar con IA" para recibir recomendaciones personalizadas basadas en tus ventas reales.
-                    </p>
-                  )}
+                  <ul className="space-y-2 mb-5">
+                    {[
+                      'Estrategias de venta personalizadas',
+                      'Predicción de demanda por día y hora',
+                      'Análisis de rentabilidad por producto',
+                      'Alertas de caída de ventas',
+                      'Resumen semanal automático',
+                    ].map(feature => (
+                      <li key={feature} className="flex items-center gap-2 text-mezo-stone font-body text-sm">
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ background: 'rgba(200,144,63,0.5)' }} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    disabled
+                    title="Disponible próximamente"
+                    className="flex items-center gap-2 px-4 py-2 rounded-mezo-md text-sm font-body font-medium opacity-40 cursor-not-allowed"
+                    style={{ background: 'rgba(200,144,63,0.1)', border: '1px solid rgba(200,144,63,0.3)', color: '#C8903F' }}>
+                    ✨ Analizar con IA
+                  </button>
                 </div>
               </div>
             )}

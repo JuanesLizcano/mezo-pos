@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { X, ChevronLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { pdf } from '@react-pdf/renderer';
 import { formatCOP } from '../../utils/formatters';
 import { createOrden, deliverOrden, createVenta, updateMesa } from '../../services';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployee } from '../../context/EmployeeContext';
+import TicketPDF from '../pos/Ticket';
 
 const PASOS = ['Personas', 'Productos', 'Cobro'];
 
@@ -21,7 +23,7 @@ function initPersonas(n) {
 }
 
 export default function ModalDivisionCuenta({ mesa, onCerrar }) {
-  const { bumpVersion }             = useAuth();
+  const { bumpVersion, negocio }    = useAuth();
   const { empleadoActivo, turnoId } = useEmployee();
 
   const totalMesa = mesa.total ?? 0;
@@ -36,7 +38,7 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
   );
 
   // ── Estado de cobros inline ─────────────────────────────────────────────────
-  const [pagados, setPagados]                   = useState({});        // { personaId: true }
+  const [pagados, setPagados]                   = useState({});        // { personaId: { metodo, items, total, recibido, cambio } }
   const [personaCobrandoId, setPersonaCobrandoId] = useState(null);
   const [metodoCobro, setMetodoCobro]           = useState('efectivo');
   const [recibidoRaw, setRecibidoRaw]           = useState('');
@@ -138,7 +140,16 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
         change:        metodoCobro === 'efectivo' ? cambio : null,
       });
 
-      const nuevosPagados = { ...pagados, [personaCobrandoId]: true };
+      const nuevosPagados = {
+        ...pagados,
+        [personaCobrandoId]: {
+          metodo:   metodoCobro,
+          items,
+          total:    subtotal,
+          recibido: metodoCobro === 'efectivo' ? recibidoNum : null,
+          cambio:   metodoCobro === 'efectivo' ? cambio      : null,
+        },
+      };
       setPagados(nuevosPagados);
       toast.success(`${personaCobrando?.nombre} cobrado ✓ — ${formatCOP(subtotal)}`);
 
@@ -165,6 +176,60 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
     } finally {
       setLoadingCobro(false);
     }
+  }
+
+  // ── Ticket e imprimir por persona ──────────────────────────────────────────
+  async function handleImprimirPersona(personaId) {
+    const cobro   = pagados[personaId];
+    const persona = personas.find(p => p.id === personaId);
+    if (!cobro) return;
+    try {
+      const orden = {
+        id:         `div-${mesa.id}-p${personaId}`,
+        lineas:     cobro.items,
+        subtotal:   cobro.total,
+        propina:    null,
+        total:      cobro.total,
+        metodo:     cobro.metodo,
+        recibido:   cobro.recibido,
+        cambio:     cobro.cambio,
+        cajero:     null,
+        fecha:      new Date(),
+        numFactura: null,
+        cliente:    null,
+      };
+      const blob = await pdf(
+        <TicketPDF
+          orden={orden}
+          negocio={negocio}
+          tituloOrden={`Mesa ${mesa.numero} — Cuenta de ${persona?.nombre ?? 'Persona'}`}
+        />
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), '_blank');
+    } catch {
+      toast.error('Error al generar el ticket PDF.');
+    }
+  }
+
+  // Comparte por WhatsApp el resumen de cobro de una persona
+  function handleWhatsAppPersona(personaId) {
+    const cobro   = pagados[personaId];
+    const persona = personas.find(p => p.id === personaId);
+    if (!cobro) return;
+    const { items, total, metodo } = cobro;
+    const fechaStr    = new Date().toLocaleString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const itemsTxt    = items.map(l => `▫ ${l.quantity}× ${l.name}   ${formatCOP(l.subtotal)}`).join('\n');
+    const metodoLabel = METODOS.find(m => m.id === metodo)?.label ?? metodo;
+    const texto = [
+      `*🧾 Ticket — ${negocio?.name ?? 'mezo'}*`,
+      `Mesa ${mesa.numero} — Cuenta de ${persona?.nombre ?? 'Persona'}`,
+      fechaStr, '',
+      itemsTxt, '',
+      `*Total: ${formatCOP(total)}*`, '',
+      `Pago: ${metodoLabel} ✅`,
+      '¡Gracias por tu visita! 🙏',
+    ].filter(Boolean).join('\n');
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
   }
 
   // ── Pantalla final: todas pagadas ───────────────────────────────────────────
@@ -406,7 +471,23 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
                         </div>
 
                         {pagado && (
-                          <p className="text-mezo-verde font-body text-xs">Pagado ✓</p>
+                          <>
+                            <p className="text-mezo-verde font-body text-xs">Pagado ✓</p>
+                            <div className="flex gap-1.5 mt-1.5">
+                              <button
+                                onClick={() => handleImprimirPersona(p.id)}
+                                className="flex-1 py-1 rounded-mezo-sm text-xs font-body font-medium transition border"
+                                style={{ background: 'rgba(200,144,63,0.08)', borderColor: 'rgba(200,144,63,0.3)', color: '#C8903F' }}>
+                                🖨️ Ticket
+                              </button>
+                              <button
+                                onClick={() => handleWhatsAppPersona(p.id)}
+                                className="flex-1 py-1 rounded-mezo-sm text-xs font-body font-medium transition border"
+                                style={{ background: 'rgba(61,170,104,0.08)', borderColor: 'rgba(61,170,104,0.3)', color: '#3DAA68' }}>
+                                📱 WhatsApp
+                              </button>
+                            </div>
+                          </>
                         )}
                         {!pagado && !tieneItems && (
                           <p className="text-mezo-stone font-body text-xs">Sin productos asignados</p>
