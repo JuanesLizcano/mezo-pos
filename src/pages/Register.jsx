@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { register as apiRegister, verifyOtp, resendOtp } from '../services';
 import { useAuth } from '../context/AuthContext';
 import MezoWordmark from '../components/brand/MezoWordmark';
+import BanderaColombiana from '../components/brand/BanderaColombiana';
 import toast from 'react-hot-toast';
 
 const OTP_DURACION_SEG  = 5 * 60; // 5 minutos
@@ -123,8 +124,9 @@ function StepOtp({ email, onVerified }) {
     setError('');
     setLoading(true);
     try {
-      const { token } = await verifyOtp(email, codeStr);
-      onVerified(token);
+      // verifyOtp devuelve { accessToken, refreshToken, user } igual que login
+      const authData = await verifyOtp(email, codeStr);
+      onVerified(authData);
     } catch (err) {
       setError(err.message || 'Código incorrecto.');
       setCodigo(['', '', '', '', '', '']);
@@ -222,13 +224,14 @@ export default function Register() {
     if (!loading && user) navigate('/onboarding', { replace: true });
   }, [loading, user, navigate]);
 
-  async function handleOtpVerified(token) {
-    await setSession(token);
+  async function handleOtpVerified(authData) {
+    await setSession(authData);
     navigate('/onboarding', { replace: true });
   }
 
   return (
-    <div className="min-h-screen bg-mezo-ink flex items-center justify-center px-4">
+    <div className="relative min-h-screen bg-mezo-ink flex items-center justify-center px-4 overflow-hidden">
+      <BanderaColombiana />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <MezoWordmark height={100} color="#C8903F" />

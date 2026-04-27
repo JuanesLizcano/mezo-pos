@@ -1,25 +1,61 @@
-// Paso 3: información operativa — ciudad, mesas, horario, WhatsApp
+// Paso 3 — info del negocio en dos columnas con tips contextuales
 export default function StepOperacion({ data, updateData, next, prev }) {
   return (
     <div>
-      <p className="text-xs text-mezo-stone uppercase tracking-widest mb-1 font-body">Paso 3 de 5</p>
-      <h2 className="text-xl font-semibold text-mezo-cream mb-1 font-body">Información del negocio</h2>
-      <p className="text-sm text-mezo-stone mb-5 font-body">Puedes cambiar esto luego desde configuración.</p>
+      <h2 className="text-mezo-cream font-display font-medium mb-1 leading-snug"
+        style={{ fontSize: 22, fontVariationSettings: '"SOFT" 30, "opsz" 36' }}>
+        Cuéntanos más de {data.nombre || 'tu negocio'}
+      </h2>
+      <p className="text-sm text-mezo-stone mb-5 font-body">
+        Esta información aparecerá en tus facturas y reportes.
+      </p>
 
-      <form onSubmit={(e) => { e.preventDefault(); next(); }} className="space-y-4">
-        <Campo label="Ciudad" placeholder="Ej: Medellín" required
-          value={data.ciudad} onChange={v => updateData({ ciudad: v })} />
+      <form onSubmit={e => { e.preventDefault(); next(); }} className="space-y-4">
 
-        <Campo label="Dirección del negocio" placeholder="Ej: Calle 50 #10-30, El Poblado" required
-          value={data.direccion} onChange={v => updateData({ direccion: v })} />
+        {/* Fila 1: Ciudad · WhatsApp */}
+        <div className="grid grid-cols-2 gap-3">
+          <Campo label="Ciudad *" placeholder="Ej: Medellín"
+            value={data.city} onChange={v => updateData({ city: v })} required />
+          <div>
+            <Campo label="WhatsApp del negocio" type="tel" placeholder="+57 300 123 4567"
+              value={data.phone} onChange={v => updateData({ phone: v })} />
+            <p className="text-mezo-stone font-body mt-1" style={{ fontSize: 10 }}>
+              💡 Lo usamos para el reporte al cerrar el día
+            </p>
+          </div>
+        </div>
 
-        <Campo label="WhatsApp del negocio" type="tel" placeholder="+57 300 123 4567"
-          value={data.whatsapp} onChange={v => updateData({ whatsapp: v })} />
+        {/* Fila 2: Dirección · Horario */}
+        <div className="grid grid-cols-2 gap-3">
+          <Campo label="Dirección *" placeholder="Calle 50 #10-30"
+            value={data.address} onChange={v => updateData({ address: v })} required />
+          <div>
+            <label className="block text-xs font-medium text-mezo-cream-dim uppercase tracking-widest mb-2 font-body">
+              Horario
+            </label>
+            <div className="flex items-center gap-2">
+              <input type="time" value={data.openingTime}
+                onChange={e => updateData({ openingTime: e.target.value })}
+                className="flex-1 px-2 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-xs focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 font-body"
+              />
+              <span className="text-mezo-stone text-xs font-body">–</span>
+              <input type="time" value={data.closingTime}
+                onChange={e => updateData({ closingTime: e.target.value })}
+                className="flex-1 px-2 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-xs focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 font-body"
+              />
+            </div>
+          </div>
+        </div>
 
-        <Campo label="Horario de atención" placeholder="Ej: Lunes a Sábado 7am – 9pm"
-          value={data.horario} onChange={v => updateData({ horario: v })} />
+        {/* Fila 3: NIT · Correo */}
+        <div className="grid grid-cols-2 gap-3">
+          <Campo label="NIT (opcional)" placeholder="900.123.456-7"
+            value={data.nit ?? ''} onChange={v => updateData({ nit: v })} />
+          <Campo label="Correo del negocio" type="email" placeholder="hola@minegocio.com"
+            value={data.email ?? ''} onChange={v => updateData({ email: v })} />
+        </div>
 
-        {/* Mesas */}
+        {/* Fila 4: Mesas — full width */}
         <div className="bg-mezo-ink-muted rounded-mezo-lg border border-mezo-ink-line p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -31,7 +67,6 @@ export default function StepOperacion({ data, updateData, next, prev }) {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${data.tieneMesas ? 'translate-x-6' : 'translate-x-0'}`} />
             </button>
           </div>
-
           {data.tieneMesas && (
             <div className="flex items-center gap-4">
               <button type="button"
@@ -50,13 +85,13 @@ export default function StepOperacion({ data, updateData, next, prev }) {
           )}
         </div>
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-1">
           <button type="button" onClick={prev}
             className="flex-1 border border-mezo-ink-line text-mezo-cream-dim font-semibold py-2.5 rounded-mezo-md text-sm hover:bg-mezo-ink-muted transition font-body">
             ← Atrás
           </button>
-          <button type="submit"
-            className="flex-[2] bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm transition font-body">
+          <button type="submit" disabled={!data.city || !data.address}
+            className="flex-[2] bg-mezo-gold hover:bg-mezo-gold-deep disabled:opacity-40 text-mezo-ink font-semibold py-2.5 rounded-mezo-md text-sm transition font-body">
             Continuar →
           </button>
         </div>
@@ -73,7 +108,7 @@ function Campo({ label, type = 'text', placeholder, value, onChange, required })
       </label>
       <input type={type} placeholder={placeholder} value={value}
         onChange={e => onChange(e.target.value)} required={required}
-        className="w-full px-4 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body"
+        className="w-full px-3 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body"
       />
     </div>
   );
