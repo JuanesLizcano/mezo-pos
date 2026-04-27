@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { EmployeeProvider } from './context/EmployeeContext';
+import { MensajesProvider } from './context/MensajesContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -17,6 +18,7 @@ import Empleados from './pages/Empleados';
 import Configuracion from './pages/Configuracion';
 import Arqueo from './pages/Arqueo';
 import PantallaCocina from './pages/PantallaCocina';
+import Mensajes from './pages/Mensajes';
 
 // Redirige / al dashboard si está logueado, o a la Landing si no
 function RootRedirect() {
@@ -37,6 +39,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
+        <MensajesProvider>
         <EmployeeProvider>
           <Routes>
             {/* Pública */}
@@ -57,6 +60,7 @@ function App() {
             <Route path="/configuracion"  element={<ProtectedRoute><Configuracion /></ProtectedRoute>} />
             <Route path="/arqueo"         element={<ProtectedRoute><Arqueo /></ProtectedRoute>} />
             <Route path="/cocina"         element={<ProtectedRoute><PantallaCocina /></ProtectedRoute>} />
+            <Route path="/mensajes"       element={<ProtectedRoute><Mensajes /></ProtectedRoute>} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -81,6 +85,7 @@ function App() {
             }}
           />
         </EmployeeProvider>
+        </MensajesProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -116,10 +116,20 @@ export default function Arqueo() {
   const { ordenes, loading: loadingOrdenes } = useOrdenes(hoy);
   const { movimientos, loading: loadingMov } = useMovimientos();
 
-  // Conteo manual por método — el cajero escribe cuánto contó físicamente
+  // Conteo manual: se guardan solo dígitos, se muestran con puntos de miles
   const [conteoReal, setConteoReal] = useState(
     Object.fromEntries(METODOS.map(m => [m.id, '']))
   );
+
+  function handleConteoChange(id, rawValue) {
+    const soloDigitos = rawValue.replace(/\D/g, '');
+    setConteoReal(prev => ({ ...prev, [id]: soloDigitos }));
+  }
+
+  function displayConteo(raw) {
+    if (!raw) return '';
+    return new Intl.NumberFormat('es-CO').format(Number(raw));
+  }
   const [modalMovimiento, setModalMovimiento] = useState(false);
   const [turnoActivo, setTurnoActivo]         = useState(null);
 
@@ -259,14 +269,14 @@ export default function Arqueo() {
                       {formatCOP(sis)}
                     </span>
 
-                    {/* Input del conteo real */}
+                    {/* Input del conteo real — formatea con puntos de miles al escribir */}
                     <div className="flex justify-center">
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="numeric"
                         placeholder="0"
-                        value={conteoReal[m.id]}
-                        onChange={e => setConteoReal(prev => ({ ...prev, [m.id]: e.target.value }))}
-                        min={0}
+                        value={displayConteo(conteoReal[m.id])}
+                        onChange={e => handleConteoChange(m.id, e.target.value)}
                         className="w-28 px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream text-center font-mono text-sm rounded-mezo-md focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition"
                       />
                     </div>

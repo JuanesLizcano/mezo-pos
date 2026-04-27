@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingCart, Printer, MessageCircle, User, Star } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingCart, Printer, MessageCircle, User, Star, FileText, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { pdf } from '@react-pdf/renderer';
 import { createOrden, deliverOrden, createVenta, createCuenta, getCliente, registrarVisita, updateMesa } from '../../services';
@@ -34,6 +34,8 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
   const [celularLealtad, setCelularLealtad] = useState('');
   const [clienteInfo, setClienteInfo]     = useState(null);
   const [modalLiberar, setModalLiberar]   = useState(false);
+  const [mostrarFactura, setMostrarFactura] = useState(false);
+  const [datosCliente, setDatosCliente]   = useState({ nombre: '', telefono: '', email: '', tributario: '', comentario: '' });
   const [liberando, setLiberando]         = useState(false);
   const lealtadTimerRef                   = useRef(null);
 
@@ -149,6 +151,7 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
         cajero:     empleadoActivo?.nombre ?? user?.email,
         fecha:      new Date(),
         numFactura: venta.saleNumber,
+        cliente:    Object.values(datosCliente).some(v => v.trim()) ? { ...datosCliente } : null,
         clienteVisitas:    clienteFinal?.visitas ?? null,
         clienteFrecuente:  clienteFinal ? clienteFinal.visitas >= 10 : false,
       });
@@ -224,6 +227,8 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
     setOrdenConfirmada(null);
     setCelularLealtad('');
     setClienteInfo(null);
+    setDatosCliente({ nombre: '', telefono: '', email: '', tributario: '', comentario: '' });
+    setMostrarFactura(false);
   }
 
   // ── Pantalla de confirmación ────────────────────────────────────────────────
@@ -507,6 +512,67 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
             </div>
             {celularLealtad.length === 10 && clienteInfo?.frecuente && (
               <p className="text-mezo-gold font-body text-xs mt-1">⭐ Cliente frecuente ({clienteInfo.visitas} visitas)</p>
+            )}
+          </div>
+        )}
+
+        {/* Datos del cliente para factura — opcional */}
+        {lineas.length > 0 && (
+          <div>
+            <button
+              onClick={() => setMostrarFactura(p => !p)}
+              className={`w-full flex items-center justify-between py-2 px-3 rounded-mezo-md border text-xs font-body font-medium transition
+                ${mostrarFactura
+                  ? 'bg-mezo-gold/10 border-mezo-gold/40 text-mezo-gold'
+                  : 'border-mezo-ink-line text-mezo-stone hover:text-mezo-cream hover:border-mezo-gold/30'}`}>
+              <span className="flex items-center gap-1.5">
+                <FileText size={11} />
+                Datos para factura
+                <span className="normal-case font-normal opacity-50">(opcional)</span>
+              </span>
+              <ChevronDown size={11} style={{ transform: mostrarFactura ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+
+            {mostrarFactura && (
+              <div className="mt-2 space-y-1.5">
+                <input
+                  type="text"
+                  placeholder="Nombre o razón social"
+                  value={datosCliente.nombre}
+                  onChange={e => setDatosCliente(p => ({ ...p, nombre: e.target.value }))}
+                  className="w-full px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
+                />
+                <div className="flex gap-1.5">
+                  <input
+                    type="tel"
+                    placeholder="Teléfono"
+                    value={datosCliente.telefono}
+                    onChange={e => setDatosCliente(p => ({ ...p, telefono: e.target.value }))}
+                    className="flex-1 px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
+                  />
+                  <input
+                    type="text"
+                    placeholder="No. tributario"
+                    value={datosCliente.tributario}
+                    onChange={e => setDatosCliente(p => ({ ...p, tributario: e.target.value }))}
+                    className="flex-1 px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
+                  />
+                </div>
+                <input
+                  type="email"
+                  placeholder="Correo electrónico"
+                  value={datosCliente.email}
+                  onChange={e => setDatosCliente(p => ({ ...p, email: e.target.value }))}
+                  className="w-full px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
+                />
+                <input
+                  type="text"
+                  placeholder="Comentario (ej: Para contabilidad empresa X)"
+                  value={datosCliente.comentario}
+                  onChange={e => setDatosCliente(p => ({ ...p, comentario: e.target.value }))}
+                  className="w-full px-3 py-1.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream font-body text-xs rounded-mezo-md focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 transition placeholder-mezo-stone/60"
+                />
+              </div>
             )}
           </div>
         )}

@@ -44,7 +44,7 @@ const TIPOS_NEGOCIO = [
   { emoji: '🍺', label: 'Bares',        img: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400' },
   { emoji: '🍔', label: 'Comida rápida',img: 'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=400' },
   { emoji: '🍦', label: 'Heladerías',   img: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400' },
-  { emoji: '🧃', label: 'Juguerías',    img: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400' },
+  { emoji: '🧃', label: 'Fruterias',    img: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400' },
   { emoji: '🍕', label: 'Pizzerías',    img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400' },
 ];
 
@@ -330,11 +330,11 @@ function MockupPOS() {
                     <span>Subtotal</span><span>$19.900</span>
                   </div>
                   <div className="flex justify-between font-body text-xs" style={{ color: '#7A6A58' }}>
-                    <span>IVA 8%</span><span>$1.592</span>
+                    <span>Propina 10%</span><span>$1.990</span>
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <span className="font-body text-sm font-semibold" style={{ color: '#D9CEB5' }}>Total</span>
-                    <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 24, color: '#C8903F', fontWeight: 700 }}>$21.492</span>
+                    <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 24, color: '#C8903F', fontWeight: 700 }}>$21.890</span>
                   </div>
                 </div>
 
@@ -367,7 +367,7 @@ function TiposNegocio() {
     <section className="py-24 px-4">
       <div className="max-w-6xl mx-auto">
         <Fade>
-          <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>Para todo tipo de negocio gastronómico</p>
+          <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>Para todo tipo de negocio</p>
           <h2 className="text-center mb-3"
             style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#F4ECD8', fontWeight: 700, lineHeight: 1.1 }}>
             Diseñado para <span style={{ fontStyle: 'italic', color: '#C8903F' }}>todo tipo de negocio</span>
@@ -559,7 +559,7 @@ function Beneficios() {
                   Todos los pagos que usan tus clientes
                 </h3>
                 <p className="font-body mb-5" style={{ color: '#7A6A58', lineHeight: 1.75, fontSize: 16 }}>
-                  Efectivo con cambio automático. Datáfono Bold. Nequi. Daviplata. Transferencia bancaria. Todo registrado, todo reportado.
+                  Efectivo con cambio automático. Datáfono. Nequi. Daviplata. Transferencia bancaria. Todo registrado, todo reportado.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {['💵 Efectivo','💳 Datáfono','📱 Nequi','📲 Daviplata','🏦 Transferencia'].map(m => (
@@ -866,6 +866,37 @@ function CTAFinal() {
   );
 }
 
+// ─── SVG íconos de redes sociales ─────────────────────────────────────────────
+const REDES_SOCIALES = [
+  {
+    href:  'https://instagram.com/usemezo',
+    title: '@usemezo en Instagram',
+    svg: (
+      <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+      </svg>
+    ),
+  },
+  {
+    href:  'https://tiktok.com/@usemezo',
+    title: '@usemezo en TikTok',
+    svg: (
+      <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/>
+      </svg>
+    ),
+  },
+  {
+    href:  'https://youtube.com/@usemezo',
+    title: '@usemezo en YouTube',
+    svg: (
+      <svg width={20} height={20} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+    ),
+  },
+];
+
 // ─── Footer 4 columnas ────────────────────────────────────────────────────────
 function Footer() {
   const linkStyle = { color: '#7A6A58' };
@@ -883,17 +914,13 @@ function Footer() {
             <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic', fontSize: 28, color: '#C8903F', fontWeight: 700 }}>mezo</span>
             <p className="font-body text-sm mt-2 mb-5" style={{ color: '#7A6A58', lineHeight: 1.6 }}>El POS hecho para Colombia.</p>
             <div className="flex items-center gap-2.5">
-              {[
-                { href: 'https://instagram.com/usemezo',          label: '📸', title: '@usemezo en Instagram' },
-                { href: 'https://tiktok.com/@usemezo',            label: '🎵', title: '@usemezo en TikTok'    },
-                { href: 'https://linkedin.com/company/mezo-co',   label: '💼', title: 'mezo en LinkedIn'      },
-              ].map(red => (
+              {REDES_SOCIALES.map(red => (
                 <a key={red.href} href={red.href} target="_blank" rel="noopener noreferrer" title={red.title}
-                  className="w-9 h-9 rounded-mezo-md border flex items-center justify-center text-sm transition"
-                  style={{ borderColor: '#2A2520', background: '#141210' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.4)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2520'; }}>
-                  {red.label}
+                  className="w-9 h-9 rounded-mezo-md border flex items-center justify-center transition"
+                  style={{ borderColor: '#2A2520', background: '#141210', color: '#7A6A58' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.4)'; e.currentTarget.style.color = '#C8903F'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2520'; e.currentTarget.style.color = '#7A6A58'; }}>
+                  {red.svg}
                 </a>
               ))}
             </div>
