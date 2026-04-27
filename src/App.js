@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { EmployeeProvider } from './context/EmployeeContext';
 import { MensajesProvider } from './context/MensajesContext';
+import { DiaProvider } from './context/DiaContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -39,6 +40,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
+        <DiaProvider>
         <MensajesProvider>
         <EmployeeProvider>
           <Routes>
@@ -86,6 +88,7 @@ function App() {
           />
         </EmployeeProvider>
         </MensajesProvider>
+        </DiaProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

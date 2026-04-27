@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createEmpleado, updateEmpleado } from '../services';
 import { emailInvitacionEmpleado } from '../services/emails';
 import { useAuth } from '../context/AuthContext';
 import { useEmpleados } from '../hooks/useEmpleados';
+import { normalizeText } from '../utils/formatters';
 import Navbar from '../components/layout/Navbar';
 import FormEmpleado from '../components/empleados/FormEmpleado';
 import TarjetaEmpleado from '../components/empleados/TarjetaEmpleado';
@@ -15,6 +16,7 @@ export default function Empleados() {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando]     = useState(null);
   const [guardando, setGuardando]   = useState(false);
+  const [busqueda, setBusqueda]     = useState('');
 
   async function handleGuardar(datos) {
     setGuardando(true);
@@ -55,8 +57,10 @@ export default function Empleados() {
     setModalAbierto(true);
   }
 
-  const activos   = empleados.filter(e => e.activo !== false);
-  const inactivos = empleados.filter(e => e.activo === false);
+  const query     = normalizeText(busqueda.trim());
+  const visibles  = query ? empleados.filter(e => normalizeText(e.nombre ?? '').includes(query)) : empleados;
+  const activos   = visibles.filter(e => e.activo !== false);
+  const inactivos = visibles.filter(e => e.activo === false);
 
   return (
     <div className="h-screen bg-mezo-ink flex flex-col overflow-hidden">
@@ -75,6 +79,24 @@ export default function Empleados() {
             className="flex items-center gap-2 px-4 py-2.5 bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold text-sm rounded-mezo-md transition font-body">
             <UserPlus size={15} /> Nuevo empleado
           </button>
+        </div>
+
+        {/* Búsqueda por nombre */}
+        <div className="relative mb-5">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-mezo-stone pointer-events-none" />
+          <input
+            type="text"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            placeholder="Buscar empleado…"
+            className="w-full pl-9 pr-9 py-2 bg-mezo-ink-raised border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold/50 font-body transition"
+          />
+          {busqueda && (
+            <button onClick={() => setBusqueda('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-mezo-stone hover:text-mezo-cream transition">
+              <X size={13} />
+            </button>
+          )}
         </div>
 
         {loading ? (

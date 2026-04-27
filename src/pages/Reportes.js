@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Sparkles, Moon, Sun } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useOrdenes } from '../hooks/useOrdenes';
+import { useDia } from '../context/DiaContext';
 import Navbar from '../components/layout/Navbar';
 import GraficaVentas from '../components/reportes/GraficaVentas';
 import KPIs, { calcularKPIs } from '../components/reportes/KPIs';
@@ -91,6 +92,7 @@ const TABS_REPORTES = [
 ];
 
 export default function Reportes() {
+  const { abrirDia, cerrarDia }         = useDia();
   const [tabActivo, setTabActivo]       = useState('ventas');
   const [periodo, setPeriodo]           = useState('hoy');
   const [modalCierre, setModalCierre]   = useState(false);
@@ -105,6 +107,7 @@ export default function Reportes() {
   const grafData  = useMemo(() => agruparParaGrafica(ordenes, periodo), [ordenes, periodo]);
 
   function handleEmpezarDia() {
+    abrirDia();
     toast.success('¡Buen día! Turno abierto ✓');
   }
 
@@ -258,7 +261,7 @@ export default function Reportes() {
       {modalCierre && (
         <ModalCierreDia
           kpis={kpis}
-          onCerrar={() => setModalCierre(false)}
+          onCerrar={() => { cerrarDia(); setModalCierre(false); }}
           onCancelar={() => setModalCierre(false)}
         />
       )}

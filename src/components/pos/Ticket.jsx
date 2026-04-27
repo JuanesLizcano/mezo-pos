@@ -48,17 +48,15 @@ export default function TicketPDF({ orden, negocio }) {
   const ordenNum     = id?.slice(-6).toUpperCase() ?? '------';
   const facturaNum   = numFactura ? `FAC-${String(numFactura).padStart(6, '0')}` : `#${ordenNum}`;
 
-  // IVA incluido en precio: base = total / 1.08
-  const ivaIncluido  = Math.round(total / 1.08 * 0.08);
-
   const metodoLabels = {
     efectivo: 'Efectivo', datafono: 'Datáfono', nequi: 'Nequi',
     daviplata: 'Daviplata', transferencia: 'Transferencia',
   };
 
-  // Usar campos del backend (name, phone, address, city); los campos fiscales son opcionales
+  // Usar campos del backend; todos los campos de contacto son opcionales
   const razonSocial  = negocio?.razonSocial || negocio?.name;
   const nit          = negocio?.nit;
+  const email        = negocio?.email;
   const telefono     = negocio?.telefono || negocio?.phone;
   const direccion    = negocio?.direccionFiscal || negocio?.address;
   const regimen      = negocio?.regimenTributario;
@@ -71,8 +69,9 @@ export default function TicketPDF({ orden, negocio }) {
         <View style={S.header}>
           <Text style={S.logoTxt}>{razonSocial ?? 'mezo'}</Text>
           {nit          && <Text style={S.fiscal}>NIT: {nit}</Text>}
-          {direccion    && <Text style={S.subtitulo}>{direccion}</Text>}
+          {email        && <Text style={S.subtitulo}>{email}</Text>}
           {telefono     && <Text style={S.subtitulo}>Tel: {telefono}</Text>}
+          {direccion    && <Text style={S.subtitulo}>{direccion}</Text>}
           {negocio?.city && !direccion && <Text style={S.subtitulo}>{negocio.city}</Text>}
           {regimen      && <Text style={S.regimen}>Régimen {regimen}</Text>}
           {negocio?.openingTime && <Text style={S.subtitulo}>{negocio.openingTime} – {negocio.closingTime}</Text>}
@@ -117,17 +116,13 @@ export default function TicketPDF({ orden, negocio }) {
 
         <View style={S.separador} />
 
-        {/* Subtotal */}
-        <View style={S.fila}>
-          <Text style={S.labelTxt}>Subtotal</Text>
-          <Text style={S.valorTxt}>{formatCOPPDF(subtotal)}</Text>
-        </View>
-
-        {/* IVA incluido */}
-        <View style={S.fila}>
-          <Text style={S.labelTxt}>IVA incluido (8%)</Text>
-          <Text style={S.valorTxt}>{formatCOPPDF(ivaIncluido)}</Text>
-        </View>
+        {/* Subtotal solo visible cuando hay propina (si no, subtotal = total) */}
+        {propina?.monto > 0 && (
+          <View style={S.fila}>
+            <Text style={S.labelTxt}>Subtotal</Text>
+            <Text style={S.valorTxt}>{formatCOPPDF(subtotal)}</Text>
+          </View>
+        )}
 
         {/* Propina */}
         {propina?.monto > 0 && (
@@ -165,7 +160,7 @@ export default function TicketPDF({ orden, negocio }) {
 
         {/* Footer */}
         <View style={S.footer}>
-          <Text style={S.footerTxt}>¡Gracias por su visita!</Text>
+          <Text style={S.footerTxt}>Precios incluyen IVA · Gracias por su visita</Text>
           <Text style={S.footerTxt}>Powered by mezo.app</Text>
         </View>
       </Page>

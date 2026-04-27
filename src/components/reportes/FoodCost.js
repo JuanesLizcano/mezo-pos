@@ -117,10 +117,11 @@ export default function FoodCost() {
                 {formatCOP(p.margenCOP)}
               </span>
 
-              <div className="flex justify-center">
-                <span className="text-xs font-body font-semibold px-2.5 py-1 rounded-full"
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <span className="font-mono font-bold text-sm" style={{ color }}>{p.margenPct}%</span>
+                <span className="text-xs font-body font-semibold px-2 py-0.5 rounded-full"
                   style={{ background: `${color}18`, color, border: `1px solid ${color}40` }}>
-                  {p.margenPct}% · {labelMargen(p.margenPct)}
+                  {labelMargen(p.margenPct)}
                 </span>
               </div>
             </div>

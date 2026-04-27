@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { useProductos } from '../../hooks/useProductos';
 import { useCategorias } from '../../hooks/useCategorias';
+import { normalizeText } from '../../utils/formatters';
 import TarjetaProducto from './TarjetaProducto';
 import FormProducto from './FormProducto';
 
@@ -9,13 +10,21 @@ export default function ListaProductos() {
   const { productos, loading } = useProductos();
   const { categorias }         = useCategorias();
   const [filtroCategoria, setFiltroCategoria] = useState('todos');
+  const [busqueda, setBusqueda]               = useState('');
   const [modal, setModal] = useState(null);
 
-  const productosFiltrados = filtroCategoria === 'todos'
+  const query = normalizeText(busqueda.trim());
+
+  // Primero filtrar por categoría, luego por texto de búsqueda
+  const base = filtroCategoria === 'todos'
     ? productos
     : filtroCategoria === 'sin-categoria'
       ? productos.filter((p) => !p.categoriaId)
       : productos.filter((p) => p.categoriaId === filtroCategoria);
+
+  const productosFiltrados = query
+    ? base.filter((p) => normalizeText(p.nombre).includes(query))
+    : base;
 
   function getCat(id) { return categorias.find((c) => c.id === id); }
 
@@ -32,6 +41,24 @@ export default function ListaProductos() {
           className="flex items-center gap-2 bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink text-sm font-semibold px-4 py-2 rounded-mezo-md transition shadow-mezo-gold font-body">
           <Plus size={15} /> Nuevo producto
         </button>
+      </div>
+
+      {/* Búsqueda por nombre */}
+      <div className="relative mb-4">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-mezo-stone pointer-events-none" />
+        <input
+          type="text"
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          placeholder="Buscar producto…"
+          className="w-full pl-9 pr-9 py-2 bg-mezo-ink-raised border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold/50 font-body transition"
+        />
+        {busqueda && (
+          <button onClick={() => setBusqueda('')}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-mezo-stone hover:text-mezo-cream transition">
+            <X size={13} />
+          </button>
+        )}
       </div>
 
       {/* Filtros */}

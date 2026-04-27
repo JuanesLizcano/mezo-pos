@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
-import { formatCOP } from '../../utils/formatters';
+import { formatCOP, normalizeText } from '../../utils/formatters';
 
 export default function MenuPOS({ categorias, productos, onAgregar }) {
   const [catActiva, setCatActiva] = useState('todas');
@@ -11,11 +11,11 @@ export default function MenuPOS({ categorias, productos, onAgregar }) {
   // Auto-focus on mount
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  const query = busqueda.trim().toLowerCase();
+  const query = normalizeText(busqueda.trim());
 
-  // When searching: all available products filtered by query, no category filter
+  // Cuando hay búsqueda: filtra por nombre sin distinción de tildes ni mayúsculas
   const buscados = query
-    ? productos.filter(p => p.disponible && p.nombre.toLowerCase().includes(query))
+    ? productos.filter(p => p.disponible && normalizeText(p.nombre).includes(query))
     : null;
 
   const filtrados = buscados ?? (

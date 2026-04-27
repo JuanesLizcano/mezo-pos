@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useDia } from '../context/DiaContext';
 import { useOrdenes } from '../hooks/useOrdenes';
 import Navbar from '../components/layout/Navbar';
 import { formatCOP } from '../utils/formatters';
@@ -31,6 +32,7 @@ function getFechaEspanol() {
 
 export default function Dashboard() {
   const { negocio, user } = useAuth();
+  const { diaAbierto, abiertaAt, abrirDia, cerrarDia } = useDia();
   const navigate = useNavigate();
   const saludo   = useMemo(getSaludo, []);
   const fecha    = useMemo(getFechaEspanol, []);
@@ -57,26 +59,36 @@ export default function Dashboard() {
 
         <main className="flex-1 p-8 max-w-7xl mx-auto w-full flex flex-col overflow-hidden">
 
-          {/* Greeting + date */}
-          <div className="mb-6">
-            <p className="text-mezo-stone uppercase tracking-widest text-xs mb-1 font-body capitalize">{fecha}</p>
-            <div className="flex items-baseline gap-3">
-              <h1 className="text-mezo-cream font-display leading-none"
-                style={{ fontSize: 52, letterSpacing: '-0.025em', fontVariationSettings: '"SOFT" 50, "opsz" 72',
-                         fontStyle: 'italic', fontWeight: 500 }}>
-                {saludo.texto}
-              </h1>
-              <span style={{ fontSize: 36 }}>{saludo.emoji}</span>
-            </div>
-            {negocio && (
-              <div className="flex items-center gap-3 mt-2">
-                <span className="text-mezo-stone text-sm font-body">{negocio.name}</span>
-                <span className="capitalize font-semibold text-sm px-3 py-0.5 rounded-mezo-md font-body"
-                  style={{ background: 'rgba(200,144,63,0.15)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.3)' }}>
-                  {user?.planType ?? '—'}
-                </span>
+          {/* Saludo + fecha + prompt de estado del día */}
+          <div className="mb-6 flex items-start justify-between gap-6">
+            <div>
+              <p className="text-mezo-stone uppercase tracking-widest text-xs mb-1 font-body capitalize">{fecha}</p>
+              <div className="flex items-baseline gap-3">
+                <h1 className="text-mezo-cream font-display leading-none"
+                  style={{ fontSize: 52, letterSpacing: '-0.025em', fontVariationSettings: '"SOFT" 50, "opsz" 72',
+                           fontStyle: 'italic', fontWeight: 500 }}>
+                  {saludo.texto}
+                </h1>
+                <span style={{ fontSize: 36 }}>{saludo.emoji}</span>
               </div>
-            )}
+              {negocio && (
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-mezo-stone text-sm font-body">{negocio.name}</span>
+                  <span className="capitalize font-semibold text-sm px-3 py-0.5 rounded-mezo-md font-body"
+                    style={{ background: 'rgba(200,144,63,0.15)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.3)' }}>
+                    {user?.planType ?? '—'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Prompt contextual según el estado del día */}
+            <PromptDia
+              diaAbierto={diaAbierto}
+              abiertaAt={abiertaAt}
+              onAbrir={abrirDia}
+              onCerrar={cerrarDia}
+            />
           </div>
 
           {/* KPI chips */}
@@ -134,4 +146,72 @@ function KpiChip({ label, valor, color }) {
       </div>
     </div>
   );
+}
+
+// Prompt contextual según el estado del día
+function PromptDia({ diaAbierto, abiertaAt, onAbrir, onCerrar }) {
+  const ahora        = new Date();
+  const horaActual   = ahora.getHours();
+
+  if (!diaAbierto) {
+    // CASO 1 — Día cerrado: invitar a empezar
+    return (
+      <div className="flex-shrink-0 flex flex-col items-end gap-2 px-5 py-4 rounded-mezo-xl"
+        style={{ background: 'rgba(61,170,104,0.08)', border: '1px solid rgba(61,170,104,0.25)', backdropFilter: 'blur(12px)' }}>
+        <p className="text-mezo-cream font-body text-sm font-medium">¿Listos para empezar? 🚀</p>
+        <button onClick={onAbrir}
+          className="px-4 py-1.5 rounded-mezo-md text-sm font-body font-semibold transition"
+          style={{ background: '#C8903F', color: '#080706' }}
+          onMouseEnter={e => { e.currentTarget.style.background = '#B8802F'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
+          Empezar día
+        </button>
+      </div>
+    );
+  }
+
+  // Calcular horas transcurridas desde apertura
+  const horasTranscurridas = abiertaAt
+    ? Math.floor((ahora - new Date(abiertaAt)) / 3_600_000)
+    : 0;
+
+  // CASO 4 — Después de las 11pm: urgente
+  if (horaActual >= 23) {
+    const horaStr = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    return (
+      <div className="flex-shrink-0 flex flex-col items-end gap-2 px-5 py-4 rounded-mezo-xl"
+        style={{ background: 'rgba(200,87,63,0.1)', border: '1px solid rgba(200,87,63,0.35)', backdropFilter: 'blur(12px)' }}>
+        <p className="text-mezo-cream font-body text-sm font-medium">Son las {horaStr}. No olviden cerrar el día.</p>
+        <button onClick={onCerrar}
+          className="px-4 py-1.5 rounded-mezo-md text-sm font-body font-semibold border transition"
+          style={{ borderColor: 'rgba(200,87,63,0.6)', color: '#C8573F', background: 'transparent' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,87,63,0.12)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+          Cerrar día
+        </button>
+      </div>
+    );
+  }
+
+  // CASO 3 — Más de 7 horas abierto y después de las 6pm
+  if (horasTranscurridas >= 7 && horaActual >= 18) {
+    return (
+      <div className="flex-shrink-0 flex flex-col items-end gap-2 px-5 py-4 rounded-mezo-xl"
+        style={{ background: 'rgba(217,164,55,0.08)', border: '1px solid rgba(217,164,55,0.3)', backdropFilter: 'blur(12px)' }}>
+        <p className="text-mezo-cream font-body text-sm font-medium">
+          Llevan {horasTranscurridas}h en servicio. ¿Listos para cerrar?
+        </p>
+        <button onClick={onCerrar}
+          className="px-4 py-1.5 rounded-mezo-md text-sm font-body font-semibold border transition"
+          style={{ borderColor: 'rgba(217,164,55,0.5)', color: '#D9A437', background: 'transparent' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(217,164,55,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+          Cerrar día
+        </button>
+      </div>
+    );
+  }
+
+  // CASO 2 — Menos de 7 horas: operación normal, no mostrar nada
+  return null;
 }

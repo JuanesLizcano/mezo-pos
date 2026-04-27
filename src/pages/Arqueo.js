@@ -5,6 +5,7 @@ import Navbar from '../components/layout/Navbar';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useMovimientos } from '../hooks/useMovimientos';
 import { useEmployee } from '../context/EmployeeContext';
+import { useDia } from '../context/DiaContext';
 import { createMovimiento, getTurnoActivo } from '../services';
 import { useAuth } from '../context/AuthContext';
 import { formatCOP } from '../utils/formatters';
@@ -34,8 +35,6 @@ const MOTIVOS = {
     'Otro gasto',
   ],
 };
-
-const HISTORICO_KEY = 'mezo_arqueo_historico';
 
 function calcularSistema(ordenes) {
   const sistema = {};
@@ -152,7 +151,7 @@ function HistoricoArqueos() {
   const [expandido, setExpandido] = useState(null);
 
   const registros = (() => {
-    try { return JSON.parse(localStorage.getItem(HISTORICO_KEY) ?? '[]'); }
+    try { return JSON.parse(localStorage.getItem('mezo_arqueo_historico') ?? '[]'); }
     catch { return []; }
   })();
 
@@ -225,6 +224,7 @@ function HistoricoArqueos() {
 export default function Arqueo() {
   const { bumpVersion }            = useAuth();
   const { empleadoActivo }         = useEmployee();
+  const { cerrarDia }              = useDia();
 
   const hoy = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const { ordenes, loading: loadingOrdenes } = useOrdenes(hoy);
@@ -282,12 +282,8 @@ export default function Arqueo() {
         METODOS.map(m => [m.id, parseFloat(conteoReal[m.id]) || 0])
       ),
     };
-    try {
-      const prev = JSON.parse(localStorage.getItem(HISTORICO_KEY) ?? '[]');
-      prev.push(registro);
-      localStorage.setItem(HISTORICO_KEY, JSON.stringify(prev));
-    } catch { /* quota exceeded — silently skip */ }
-
+    // DiaContext guarda en histórico y marca el día como cerrado
+    cerrarDia(registro);
     setConteoReal(Object.fromEntries(METODOS.map(m => [m.id, ''])));
     setConfirmCierre(false);
     toast.success('Día cerrado y arqueo guardado en histórico ✓');
