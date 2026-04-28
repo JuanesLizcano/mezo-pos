@@ -1,5 +1,32 @@
-// Paso 3 — info del negocio en dos columnas con tips contextuales
+import { useState } from 'react';
+
+// Ciudades colombianas — orden por relevancia comercial, luego municipios del entorno bogotano
+const CIUDADES = [
+  'Bogotá D.C.', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena',
+  'Cúcuta', 'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué',
+  'Manizales', 'Villavicencio', 'Pasto', 'Montería', 'Valledupar',
+  'Armenia', 'Neiva', 'Popayán', 'Sincelejo', 'Tunja',
+  'Florencia', 'Chía', 'Cajicá', 'Zipaquirá', 'Cota',
+  'Sopó', 'La Calera', 'Tocancipá', 'Tenjo', 'Facatativá',
+  'Madrid', 'Mosquera', 'Funza', 'Tabio', 'Subachoque',
+];
+
 export default function StepOperacion({ data, updateData, next, prev }) {
+  // Valor del select: ciudad exacta o 'otra'
+  const [selectVal, setSelectVal] = useState(() => {
+    if (!data.city) return '';
+    return CIUDADES.includes(data.city) ? data.city : 'otra';
+  });
+
+  function handleCiudadSelect(val) {
+    setSelectVal(val);
+    if (val !== 'otra') {
+      updateData({ city: val });
+    } else {
+      updateData({ city: '' });
+    }
+  }
+
   return (
     <div>
       <h2 className="text-mezo-cream font-display font-medium mb-1 leading-snug"
@@ -14,8 +41,43 @@ export default function StepOperacion({ data, updateData, next, prev }) {
 
         {/* Fila 1: Ciudad · WhatsApp */}
         <div className="grid grid-cols-2 gap-3">
-          <Campo label="Ciudad *" placeholder="Ej: Medellín"
-            value={data.city} onChange={v => updateData({ city: v })} required />
+          <div>
+            <label className="block text-xs font-medium text-mezo-cream-dim uppercase tracking-widest mb-2 font-body">
+              Ciudad *
+            </label>
+            <select
+              value={selectVal}
+              onChange={e => handleCiudadSelect(e.target.value)}
+              required={selectVal !== 'otra'}
+              className="w-full px-3 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body"
+              style={{ background: '#1A1713', color: selectVal ? '#F4ECD8' : '#6B6055' }}
+            >
+              <option value="" disabled style={{ background: '#1A1713', color: '#6B6055' }}>
+                Selecciona tu ciudad
+              </option>
+              {CIUDADES.map(c => (
+                <option key={c} value={c} style={{ background: '#1A1713', color: '#F4ECD8' }}>
+                  {c}
+                </option>
+              ))}
+              <option value="otra" style={{ background: '#1A1713', color: '#C8903F' }}>
+                Otra ciudad
+              </option>
+            </select>
+            {/* Input libre solo cuando selecciona "Otra ciudad" */}
+            {selectVal === 'otra' && (
+              <input
+                type="text"
+                placeholder="Escribe tu ciudad"
+                value={data.city}
+                onChange={e => updateData({ city: e.target.value })}
+                required
+                autoFocus
+                className="mt-2 w-full px-3 py-2.5 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream placeholder-mezo-stone rounded-mezo-md text-sm focus:outline-none focus:ring-2 focus:ring-mezo-gold focus:border-transparent transition font-body"
+              />
+            )}
+          </div>
+
           <div>
             <Campo label="WhatsApp del negocio" type="tel" placeholder="+57 300 123 4567"
               value={data.phone} onChange={v => updateData({ phone: v })} />
@@ -33,15 +95,22 @@ export default function StepOperacion({ data, updateData, next, prev }) {
             <label className="block text-xs font-medium text-mezo-cream-dim uppercase tracking-widest mb-2 font-body">
               Horario
             </label>
-            <div className="flex items-center gap-2">
-              <input type="time" value={data.openingTime}
+            {/* flex-wrap para que en móvil cada input vaya a su propia línea */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="time"
+                value={data.openingTime}
                 onChange={e => updateData({ openingTime: e.target.value })}
-                className="flex-1 px-2 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-xs focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 font-body"
+                className="px-2 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-xs focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 font-body"
+                style={{ minWidth: 80, maxWidth: 130, flex: '1 1 80px' }}
               />
-              <span className="text-mezo-stone text-xs font-body">–</span>
-              <input type="time" value={data.closingTime}
+              <span className="text-mezo-stone text-xs font-body flex-shrink-0">—</span>
+              <input
+                type="time"
+                value={data.closingTime}
                 onChange={e => updateData({ closingTime: e.target.value })}
-                className="flex-1 px-2 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-xs focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 font-body"
+                className="px-2 py-2 bg-mezo-ink-muted border border-mezo-ink-line text-mezo-cream rounded-mezo-md text-xs focus:outline-none focus:ring-1 focus:ring-mezo-gold/50 font-body"
+                style={{ minWidth: 80, maxWidth: 130, flex: '1 1 80px' }}
               />
             </div>
           </div>

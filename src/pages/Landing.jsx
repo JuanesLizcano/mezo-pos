@@ -846,7 +846,7 @@ function CTAFinal() {
       <div className="relative z-10 max-w-2xl mx-auto text-center">
         <Fade>
           <h2 style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', color: '#F4ECD8', fontWeight: 700, lineHeight: 1.05, letterSpacing: '-0.02em' }}>
-            Tu cafetería merece<br />
+            Tu negocio merece<br />
             <span style={{ fontStyle: 'italic', color: '#C8903F' }}>la mejor herramienta</span>
           </h2>
           <p className="font-body mt-5 mb-8" style={{ color: '#7A6A58', fontSize: 18 }}>Únete hoy. 30 días gratis.</p>
@@ -858,7 +858,7 @@ function CTAFinal() {
             Crear cuenta gratis →
           </Link>
           <p className="font-body text-sm mt-5" style={{ color: '#4A3F35' }}>
-            Sin tarjeta · Cancela cuando quieras · Soporte en español
+             · Cancela cuando quieras · Soporte en español
           </p>
         </Fade>
       </div>

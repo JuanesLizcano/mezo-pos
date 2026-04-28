@@ -38,12 +38,19 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
   );
 
   // ── Estado de cobros inline ─────────────────────────────────────────────────
-  const [pagados, setPagados]                   = useState({});        // { personaId: { metodo, items, total, recibido, cambio } }
+  const [pagados, setPagados]                   = useState({});
   const [personaCobrandoId, setPersonaCobrandoId] = useState(null);
   const [metodoCobro, setMetodoCobro]           = useState('efectivo');
   const [recibidoRaw, setRecibidoRaw]           = useState('');
   const [loadingCobro, setLoadingCobro]         = useState(false);
   const [todasPagadas, setTodasPagadas]         = useState(false);
+
+  // Pantalla intermedia tras cobrar cada persona
+  // null | { personaId, nombre, total, metodo, recibido, cambio, nuevosPagados, todasYa }
+  const [pendientePostCobro, setPendientePostCobro] = useState(null);
+
+  // Resumen para la pantalla final — capturado antes de que bumpVersion limpie la mesa
+  const [resumenFinal, setResumenFinal] = useState(null);
 
   // ── Helpers paso 1 y 2 ─────────────────────────────────────────────────────
   function cambiarNumPersonas(n) {
@@ -102,10 +109,8 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
   const sinAsignar      = totalMesa - totalAsignado;
   const sinAsignarCount = Object.values(asignaciones).filter(a => a.length === 0).length;
 
-  // Personas que tienen al menos un ítem asignado
   const personasConItems = personas.filter(p => calcularLineasParaCobro(p.id).length > 0);
 
-  // Datos de la persona que se está cobrando ahora
   const personaCobrando = personas.find(p => p.id === personaCobrandoId);
   const montoCobrando   = personaCobrando ? calcularMontoPersona(personaCobrando.id) : 0;
   const recibidoNum     = parseInt(recibidoRaw, 10) || 0;
@@ -114,7 +119,7 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
   const puedeCobrar     = Boolean(personaCobrandoId) &&
                           (metodoCobro !== 'efectivo' || recibidoNum >= montoCobrando);
 
-  // ── Cobro de una persona ────────────────────────────────────────────────────
+  // ── Cobro de una persona — registra en API y muestra pantalla intermedia ────
   async function handleCobrarPersona() {
     if (!puedeCobrar || loadingCobro) return;
     setLoadingCobro(true);
@@ -151,26 +156,23 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
         },
       };
       setPagados(nuevosPagados);
-      toast.success(`${personaCobrando?.nombre} cobrado ✓ — ${formatCOP(subtotal)}`);
 
-      // ¿Ya pagaron todas las personas con ítems?
       const todasYa = personasConItems.every(p => nuevosPagados[p.id]);
 
-      if (todasYa) {
-        // Liberar mesa automáticamente
-        try {
-          await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
-        } catch { /* la mesa ya pudo haber sido liberada */ }
-        bumpVersion();
-        setPersonaCobrandoId(null);
-        setTodasPagadas(true);
-      } else {
-        // Pasar automáticamente a la siguiente persona sin cobrar
-        const siguiente = personasConItems.find(p => !nuevosPagados[p.id]);
-        setPersonaCobrandoId(siguiente?.id ?? null);
-        setMetodoCobro('efectivo');
-        setRecibidoRaw('');
-      }
+      // Mostrar pantalla intermedia en vez de avanzar automáticamente
+      setPendientePostCobro({
+        personaId:     personaCobrandoId,
+        nombre:        personaCobrando?.nombre ?? `Persona ${personaCobrandoId}`,
+        total:         subtotal,
+        metodo:        metodoCobro,
+        recibido:      metodoCobro === 'efectivo' ? recibidoNum : null,
+        cambio:        metodoCobro === 'efectivo' ? cambio      : null,
+        nuevosPagados,
+        todasYa,
+      });
+      setPersonaCobrandoId(null);
+      setMetodoCobro('efectivo');
+      setRecibidoRaw('');
     } catch {
       toast.error('Error al procesar el cobro. Intenta de nuevo.');
     } finally {
@@ -178,7 +180,33 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
     }
   }
 
-  // ── Ticket e imprimir por persona ──────────────────────────────────────────
+  // ── Avanzar desde pantalla intermedia ──────────────────────────────────────
+  async function handleContinuarTrasPersona() {
+    if (!pendientePostCobro) return;
+    const { nuevosPagados, todasYa } = pendientePostCobro;
+    setPendientePostCobro(null);
+
+    if (todasYa) {
+      // Calcular total real antes de limpiar la mesa (bumpVersion puede vaciar lineas)
+      const totalReal = Object.values(nuevosPagados).reduce((s, p) => s + p.total, 0);
+      const personasResumen = personasConItems.map(p => ({
+        nombre: p.nombre,
+        ...nuevosPagados[p.id],
+      }));
+      setResumenFinal({ total: totalReal, personas: personasResumen });
+
+      try {
+        await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
+      } catch { /* mesa ya pudo haber sido liberada */ }
+      bumpVersion();
+      setTodasPagadas(true);
+    } else {
+      const siguiente = personasConItems.find(p => !nuevosPagados[p.id]);
+      setPersonaCobrandoId(siguiente?.id ?? null);
+    }
+  }
+
+  // ── Ticket individual por persona ──────────────────────────────────────────
   async function handleImprimirPersona(personaId) {
     const cobro   = pagados[personaId];
     const persona = personas.find(p => p.id === personaId);
@@ -211,7 +239,45 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
     }
   }
 
-  // Comparte por WhatsApp el resumen de cobro de una persona
+  // ── Resumen completo con todas las personas ────────────────────────────────
+  async function handleImprimirResumen() {
+    if (!resumenFinal) return;
+    try {
+      // Agrupar ítems de todas las personas etiquetando a quién corresponde
+      const lineasResumen = resumenFinal.personas.flatMap(p =>
+        (p.items ?? []).map(item => ({
+          ...item,
+          name: `${p.nombre}: ${item.name}`,
+        }))
+      );
+      const orden = {
+        id:         `resumen-${mesa.id}`,
+        lineas:     lineasResumen,
+        subtotal:   resumenFinal.total,
+        propina:    null,
+        total:      resumenFinal.total,
+        metodo:     'varios',
+        recibido:   null,
+        cambio:     null,
+        cajero:     null,
+        fecha:      new Date(),
+        numFactura: null,
+        cliente:    null,
+      };
+      const blob = await pdf(
+        <TicketPDF
+          orden={orden}
+          negocio={negocio}
+          tituloOrden={`Resumen Mesa ${mesa.numero} — División`}
+        />
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), '_blank');
+    } catch {
+      toast.error('Error al generar el resumen.');
+    }
+  }
+
+  // Compartir ticket por WhatsApp
   function handleWhatsAppPersona(personaId) {
     const cobro   = pagados[personaId];
     const persona = personas.find(p => p.id === personaId);
@@ -232,23 +298,87 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
   }
 
-  // ── Pantalla final: todas pagadas ───────────────────────────────────────────
-  if (todasPagadas) {
+  // ── Pantalla intermedia — persona recién cobrada ────────────────────────────
+  if (pendientePostCobro) {
+    const { personaId, nombre, total, cambio: cambioPost, recibido: recibidoPost, todasYa } = pendientePostCobro;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
         style={{ background: 'rgba(8,7,6,0.88)' }}>
         <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl w-full max-w-sm p-8 text-center shadow-mezo-lg">
-          <span style={{ fontSize: 56 }}>✅</span>
+          <div style={{ fontSize: 52 }}>✅</div>
+          <p className="text-mezo-cream font-body font-semibold text-xl mt-4">{nombre} cobrado/a</p>
+          <p className="font-mono font-bold text-mezo-gold text-2xl mt-1">{formatCOP(total)}</p>
+
+          {/* Cambio si pagó en efectivo */}
+          {recibidoPost > 0 && cambioPost > 0 && (
+            <p className="text-mezo-verde font-body text-sm mt-1">
+              Cambio: {formatCOP(cambioPost)}
+            </p>
+          )}
+
+          {todasYa && (
+            <p className="text-mezo-stone font-body text-xs mt-2">
+              Última persona — la mesa quedará liberada
+            </p>
+          )}
+
+          {/* Acciones de impresión */}
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => handleImprimirPersona(personaId)}
+              className="flex-1 py-2.5 rounded-mezo-md text-sm font-body font-semibold border transition"
+              style={{ background: 'rgba(200,144,63,0.1)', borderColor: 'rgba(200,144,63,0.4)', color: '#C8903F' }}>
+              🖨️ Imprimir ticket
+            </button>
+            <button
+              onClick={() => handleWhatsAppPersona(personaId)}
+              className="flex-1 py-2.5 rounded-mezo-md text-sm font-body font-semibold border transition"
+              style={{ background: 'rgba(61,170,104,0.08)', borderColor: 'rgba(61,170,104,0.3)', color: '#3DAA68' }}>
+              📱 WhatsApp
+            </button>
+          </div>
+
+          {/* Continuar — avanza a la siguiente persona o a la pantalla final */}
+          <button
+            onClick={handleContinuarTrasPersona}
+            className="mt-3 w-full py-3 rounded-mezo-md text-sm font-body font-semibold border transition"
+            style={{ borderColor: '#2A2520', color: '#F4ECD8' }}>
+            Continuar →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Pantalla final — todas pagadas ──────────────────────────────────────────
+  if (todasPagadas) {
+    const totalMostrar  = resumenFinal?.total ?? 0;
+    const numPersonasCobradas = resumenFinal?.personas?.length ?? 0;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+        style={{ background: 'rgba(8,7,6,0.88)' }}>
+        <div className="bg-mezo-ink-raised border border-mezo-ink-line rounded-mezo-xl w-full max-w-sm p-8 text-center shadow-mezo-lg">
+          <div style={{ fontSize: 56 }}>✅</div>
           <p className="text-mezo-cream font-display text-2xl font-medium mt-4 leading-tight">
             ¡Todas pagadas!
           </p>
-          <p className="font-mono font-bold text-mezo-gold text-xl mt-1">{formatCOP(totalAsignado)}</p>
+          <p className="font-mono font-bold text-mezo-gold text-2xl mt-1">{formatCOP(totalMostrar)}</p>
           <p className="text-mezo-verde font-body text-sm mt-1">Mesa {mesa.numero} liberada ✓</p>
           <p className="text-mezo-stone font-body text-xs mt-0.5">
-            {personasConItems.length} persona{personasConItems.length !== 1 ? 's' : ''} cobradas
+            {numPersonasCobradas} persona{numPersonasCobradas !== 1 ? 's' : ''} cobrada{numPersonasCobradas !== 1 ? 's' : ''}
           </p>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={handleImprimirResumen}
+              className="flex-1 py-2.5 rounded-mezo-md text-sm font-body font-semibold border transition"
+              style={{ background: 'rgba(200,144,63,0.1)', borderColor: 'rgba(200,144,63,0.4)', color: '#C8903F' }}>
+              🖨️ Imprimir resumen completo
+            </button>
+          </div>
+
           <button onClick={onCerrar}
-            className="mt-6 w-full bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-3 rounded-mezo-md text-sm font-body transition">
+            className="mt-3 w-full bg-mezo-gold hover:bg-mezo-gold-deep text-mezo-ink font-semibold py-3 rounded-mezo-md text-sm font-body transition">
             Volver a Mesas
           </button>
         </div>
@@ -256,7 +386,6 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
     );
   }
 
-  // Ancho del modal: más amplio en paso 3 con panel inline activo (desktop)
   const anchoPaso3 = paso === 3 && personaCobrandoId;
 
   return (
@@ -305,9 +434,7 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
           })}
         </div>
 
-        {/* ── Contenido ──────────────────────────────────────────────────────────── */}
-
-        {/* Paso 1 y 2: layout estándar con scroll */}
+        {/* Pasos 1 y 2 */}
         {paso !== 3 && (
           <div className="flex-1 overflow-y-auto px-6 py-4">
 
@@ -428,7 +555,7 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
         {paso === 3 && (
           <div className="flex flex-1 overflow-hidden">
 
-            {/* Columna izquierda — lista de personas (oculta en móvil cuando hay panel activo) */}
+            {/* Columna izquierda — lista de personas */}
             <div className={`flex flex-col overflow-y-auto px-5 py-4
               ${personaCobrandoId
                 ? 'hidden md:flex md:w-64 md:flex-shrink-0 md:border-r md:border-mezo-ink-line'
@@ -529,13 +656,11 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
             {personaCobrandoId && personaCobrando && (
               <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col">
 
-                {/* Volver (solo móvil) */}
                 <button onClick={() => setPersonaCobrandoId(null)}
                   className="flex items-center gap-1.5 text-mezo-stone hover:text-mezo-cream text-xs font-body mb-4 md:hidden transition">
                   <ChevronLeft size={14} /> Volver a división
                 </button>
 
-                {/* Persona y monto */}
                 <p className="text-mezo-stone font-body text-xs uppercase tracking-widest mb-1">Cobrar a</p>
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-mezo-cream font-body font-semibold text-lg">{personaCobrando.nombre}</p>
@@ -589,7 +714,6 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
                   </div>
                 )}
 
-                {/* Botón cobrar */}
                 <button onClick={handleCobrarPersona}
                   disabled={!puedeCobrar || loadingCobro}
                   className="mt-auto w-full py-3 rounded-mezo-md text-sm font-body font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
@@ -601,7 +725,6 @@ export default function ModalDivisionCuenta({ mesa, onCerrar }) {
               </div>
             )}
 
-            {/* Paso 3 sin persona seleccionada (desktop): mensaje placeholder */}
             {!personaCobrandoId && (
               <div className="hidden md:flex flex-1 items-center justify-center">
                 <p className="text-mezo-stone font-body text-sm">← Selecciona una persona para cobrar</p>

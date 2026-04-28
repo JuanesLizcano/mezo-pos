@@ -10,11 +10,11 @@ export function calcularKPIs(ordenes) {
   const numOrdenes = ordenes.length;
   const ticketPromedio = Math.round(total / numOrdenes);
 
-  // Mejor hora del día
+  // Mejor hora del día (usa createdAt, campo del backend)
   const porHora = {};
   ordenes.forEach(o => {
-    if (!o.creadoEn) return;
-    const h = new Date(o.creadoEn).getHours();
+    if (!o.createdAt) return;
+    const h = new Date(o.createdAt).getHours();
     porHora[h] = (porHora[h] ?? 0) + 1;
   });
   const mejorHoraNum = Object.keys(porHora).sort((a, b) => porHora[b] - porHora[a])[0];
@@ -22,31 +22,35 @@ export function calcularKPIs(ordenes) {
     ? `${String(mejorHoraNum).padStart(2, '0')}:00 – ${String((+mejorHoraNum + 1) % 24).padStart(2, '0')}:00`
     : null;
 
-  // Producto #1 por cantidad vendida
+  // Producto #1 por cantidad vendida (items/name/quantity son los campos del backend)
   const porProducto = {};
   ordenes.forEach(o => {
-    (o.lineas ?? []).forEach(l => {
-      const key = l.nombre;
-      porProducto[key] = (porProducto[key] ?? 0) + (l.cantidad ?? 1);
+    (o.items ?? []).forEach(l => {
+      const key = l.name;
+      porProducto[key] = (porProducto[key] ?? 0) + (l.quantity ?? 1);
     });
   });
   const productoTop = Object.keys(porProducto).sort((a, b) => porProducto[b] - porProducto[a])[0] ?? null;
   const productoTopCantidad = productoTop ? porProducto[productoTop] : 0;
 
-  // Método de pago más usado
+  // Método de pago más usado (paymentMethod es el campo del backend)
   const porMetodo = {};
   ordenes.forEach(o => {
-    if (!o.metodoPago) return;
-    porMetodo[o.metodoPago] = (porMetodo[o.metodoPago] ?? 0) + 1;
+    if (!o.paymentMethod) return;
+    porMetodo[o.paymentMethod] = (porMetodo[o.paymentMethod] ?? 0) + 1;
   });
   const metodoPagoTop = Object.keys(porMetodo).sort((a, b) => porMetodo[b] - porMetodo[a])[0] ?? null;
 
   return { total, numOrdenes, ticketPromedio, mejorHora, productoTop, productoTopCantidad, metodoPagoTop };
 }
 
+// Etiquetas para los enums de paymentMethod del backend
 const METODO_LABELS = {
-  efectivo: 'Efectivo', datafono: 'Datáfono', nequi: 'Nequi',
-  daviplata: 'Daviplata', transferencia: 'Transferencia',
+  CASH:      'Efectivo',
+  CARD:      'Datáfono',
+  NEQUI:     'Nequi',
+  DAVIPLATA: 'Daviplata',
+  TRANSFER:  'Transferencia',
 };
 
 export default function KPIs({ kpis }) {

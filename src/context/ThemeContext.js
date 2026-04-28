@@ -29,7 +29,7 @@ export function ThemeProvider({ children }) {
   // Cargar preferencia de tema desde localStorage al montar
   useEffect(() => {
     if (!user) return;
-    const guardado = localStorage.getItem(`mezo_tema_${user.uid}`);
+    const guardado = localStorage.getItem(`mezo_tema_${user.id}`);
     if (guardado !== null) setModoOscuro(guardado === 'oscuro');
   }, [user]);
 
@@ -46,7 +46,7 @@ export function ThemeProvider({ children }) {
   function toggleModo() {
     const nuevo = !modoOscuro;
     setModoOscuro(nuevo);
-    if (user) localStorage.setItem(`mezo_tema_${user.uid}`, nuevo ? 'oscuro' : 'claro');
+    if (user) localStorage.setItem(`mezo_tema_${user.id}`, nuevo ? 'oscuro' : 'claro');
   }
 
   function aplicarColor(hex) {

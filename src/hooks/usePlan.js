@@ -34,8 +34,9 @@ const PLANES = {
 };
 
 export function usePlan() {
-  const { negocio } = useAuth();
-  const plan   = negocio?.plan ?? 'semilla';
+  const { user } = useAuth();
+  // planType viene en mayúsculas del backend ('SEMILLA', 'PRO', 'ELITE')
+  const plan    = (user?.planType ?? 'SEMILLA').toLowerCase();
   const limites = PLANES[plan] ?? PLANES.semilla;
 
   // Devuelve { permitido: bool, mensaje?: string }

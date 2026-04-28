@@ -1,28 +1,23 @@
-import { useEffect, useState } from 'react';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { useEffect, useState, useCallback } from 'react';
+import { getProductos } from '../services';
 import { useAuth } from '../context/AuthContext';
 
 export function useProductos() {
-  const { user } = useAuth();
+  const { user, dataVersion }    = useAuth();
   const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]     = useState(true);
 
-  useEffect(() => {
+  const fetch = useCallback(async () => {
     if (!user) return;
-
-    const q = query(
-      collection(db, 'negocios', user.uid, 'productos'),
-      orderBy('creadoEn', 'desc')
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      setProductos(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    try {
+      const data = await getProductos();
+      setProductos(data);
+    } finally {
       setLoading(false);
-    });
-
-    return unsub;
+    }
   }, [user]);
 
-  return { productos, loading };
+  useEffect(() => { fetch(); }, [fetch, dataVersion]);
+
+  return { productos, loading, refetch: fetch };
 }

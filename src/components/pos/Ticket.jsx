@@ -167,7 +167,7 @@ export default function TicketPDF({ orden, negocio, tituloOrden }) {
 
         {/* Footer */}
         <View style={S.footer}>
-          <Text style={S.footerTxt}>Precios incluyen IVA · Gracias por su visita</Text>
+          <Text style={S.footerTxt}>{negocio?.pieFactura || 'Precios incluyen IVA · Gracias por su visita'}</Text>
           <Text style={S.footerTxt}>Powered by mezo.app</Text>
         </View>
       </Page>

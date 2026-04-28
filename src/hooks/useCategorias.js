@@ -1,28 +1,23 @@
-import { useEffect, useState } from 'react';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { useEffect, useState, useCallback } from 'react';
+import { getCategorias } from '../services';
 import { useAuth } from '../context/AuthContext';
 
 export function useCategorias() {
-  const { user } = useAuth();
+  const { user, dataVersion }      = useAuth();
   const [categorias, setCategorias] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
 
-  useEffect(() => {
+  const fetch = useCallback(async () => {
     if (!user) return;
-
-    const q = query(
-      collection(db, 'negocios', user.uid, 'categorias'),
-      orderBy('orden', 'asc')
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      setCategorias(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    try {
+      const data = await getCategorias();
+      setCategorias(data);
+    } finally {
       setLoading(false);
-    });
-
-    return unsub;
+    }
   }, [user]);
 
-  return { categorias, loading };
+  useEffect(() => { fetch(); }, [fetch, dataVersion]);
+
+  return { categorias, loading, refetch: fetch };
 }
