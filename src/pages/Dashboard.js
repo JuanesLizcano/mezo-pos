@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDia } from '../context/DiaContext';
 import { useOrdenes } from '../hooks/useOrdenes';
+import { track } from '../services/analytics';
 import Navbar from '../components/layout/Navbar';
 import { formatCOP } from '../utils/formatters';
 
@@ -86,8 +87,8 @@ export default function Dashboard() {
             <PromptDia
               diaAbierto={diaAbierto}
               abiertaAt={abiertaAt}
-              onAbrir={abrirDia}
-              onCerrar={cerrarDia}
+              onAbrir={() => { abrirDia(); track.diaAbierto(); }}
+              onCerrar={() => { cerrarDia(); track.diaCerrado({}); }}
             />
           </div>
 

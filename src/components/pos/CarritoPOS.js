@@ -7,6 +7,7 @@ import { createOrden, deliverOrden, createVenta, createCuenta, getCliente, regis
 import { useAuth } from '../../context/AuthContext';
 import { useEmployee } from '../../context/EmployeeContext';
 import { formatCOP } from '../../utils/formatters';
+import { track } from '../../services/analytics';
 import TicketPDF from './Ticket';
 
 const METODOS = [
@@ -135,6 +136,14 @@ export default function CarritoPOS({ lineas, total, count, onAgregar, onQuitar, 
           await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
         } catch { /* la orden ya fue guardada, la liberación no es crítica */ }
       }
+
+      track.ordenCobrada({
+        total:       totalConPropina,
+        metodo,
+        numItems:    items.length,
+        tienePropina: Boolean(propinaPct),
+        esMesa:      Boolean(mesa),
+      });
 
       bumpVersion();
       toast.success('Orden guardada ✓');

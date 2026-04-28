@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/react';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import './services/analytics'; // inicializa PostHog al cargar la app
 
 // Sentry solo se inicializa si hay DSN configurado en .env
 if (process.env.REACT_APP_SENTRY_DSN) {

@@ -1,9 +1,7 @@
 import { useNavigate, NavLink } from 'react-router-dom';
-import { LogOut, Home, ShoppingBag, Receipt, LayoutGrid, BarChart2, Users, Settings, Calculator, Sun, Moon, MessageCircle } from 'lucide-react';
+import { LogOut, Home, ShoppingBag, Receipt, LayoutGrid, BarChart2, Users, Settings, Calculator, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployee } from '../../context/EmployeeContext';
-import { useTheme } from '../../context/ThemeContext';
-import { useMensajes } from '../../context/MensajesContext';
 import MezoWordmark from '../brand/MezoWordmark';
 
 const NAV_ITEMS_BASE = [
@@ -19,10 +17,8 @@ const NAV_ITEMS_BASE = [
 ];
 
 export default function Navbar() {
-  const { user, negocio, logout }   = useAuth();
-  const { tieneRol }                = useEmployee();
-  const { modoOscuro, toggleModo }  = useTheme();
-  const { unreadCount }             = useMensajes();
+  const { user, negocio, logout } = useAuth();
+  const { tieneRol }              = useEmployee();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -55,11 +51,11 @@ export default function Navbar() {
             >
               <Icon size={16} />
               {label}
-              {/* Badge de mensajes no leídos */}
-              {to === '/mensajes' && unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full text-white font-bold"
-                  style={{ fontSize: 9, background: '#C8573F' }}>
-                  {unreadCount}
+              {/* Badge dorado — feature nueva próximamente */}
+              {to === '/mensajes' && (
+                <span className="absolute -top-1 -right-1 font-bold leading-none"
+                  style={{ fontSize: 8, background: '#C8903F', color: '#080706', padding: '2px 4px', borderRadius: 3 }}>
+                  nuevo
                 </span>
               )}
             </NavLink>
@@ -72,15 +68,6 @@ export default function Navbar() {
           {negocio?.name ?? user?.email}
         </span>
         <div className="hidden md:block w-px h-5 bg-mezo-ink-line" />
-
-        {/* Toggle modo oscuro/claro */}
-        <button
-          onClick={toggleModo}
-          title={modoOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-          className="text-mezo-stone hover:text-mezo-cream transition"
-        >
-          {modoOscuro ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
 
         <button
           onClick={handleLogout}

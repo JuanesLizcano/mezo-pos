@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from 'react';
 const MensajesContext = createContext(null);
 
 export function MensajesProvider({ children }) {
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [unreadCount, setUnreadCount] = useState(0);
   const markAllRead = () => setUnreadCount(0);
   return (
     <MensajesContext.Provider value={{ unreadCount, markAllRead }}>

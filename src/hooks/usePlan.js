@@ -2,32 +2,32 @@ import { useAuth } from '../context/AuthContext';
 
 const PLANES = {
   semilla: {
-    maxMesas:       4,
-    maxProductos:   25,
-    maxCategorias:  3,
-    maxEmpleados:   3,
+    maxMesas:       8,
+    maxProductos:   50,
+    maxCategorias:  5,
+    maxEmpleados:   5,
     maxSedes:       1,
-    tieneReportes:  false,
+    tieneReportes:  'basico',  // solo ventas de hoy
     tieneIA:        false,
     label:          'Semilla',
   },
   pro: {
-    maxMesas:       null, // ilimitado
-    maxProductos:   null,
-    maxCategorias:  null,
-    maxEmpleados:   null,
+    maxMesas:       Infinity,
+    maxProductos:   Infinity,
+    maxCategorias:  Infinity,
+    maxEmpleados:   Infinity,
     maxSedes:       1,
-    tieneReportes:  true,
+    tieneReportes:  'completo',
     tieneIA:        false,
     label:          'Pro',
   },
   elite: {
-    maxMesas:       null,
-    maxProductos:   null,
-    maxCategorias:  null,
-    maxEmpleados:   null,
-    maxSedes:       null,
-    tieneReportes:  true,
+    maxMesas:       Infinity,
+    maxProductos:   Infinity,
+    maxCategorias:  Infinity,
+    maxEmpleados:   Infinity,
+    maxSedes:       Infinity,
+    tieneReportes:  'completo',
     tieneIA:        true,
     label:          'Elite',
   },
@@ -42,7 +42,7 @@ export function usePlan() {
   // Devuelve { permitido: bool, mensaje?: string }
   function verificarLimite(tipo, conteoActual) {
     const max = limites[`max${tipo}`];
-    if (max === null || max === undefined) return { permitido: true };
+    if (max === Infinity || max === null || max === undefined) return { permitido: true };
     if (conteoActual >= max) {
       return {
         permitido: false,

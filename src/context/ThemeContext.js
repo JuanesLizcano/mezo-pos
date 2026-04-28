@@ -22,32 +22,21 @@ function lighten(hex, amount = 0.2) {
 }
 
 export function ThemeProvider({ children }) {
-  const { user, negocio }             = useAuth();
-  const [modoOscuro, setModoOscuro]   = useState(true);
-  const [colorPrimario, _setColor]    = useState('#C8903F');
+  const { negocio }                = useAuth();
+  const modoOscuro                 = true; // siempre oscuro — modo claro pendiente de diseño
+  const [colorPrimario, _setColor] = useState('#C8903F');
 
-  // Cargar preferencia de tema desde localStorage al montar
+  // Fijar tema oscuro en <html>
   useEffect(() => {
-    if (!user) return;
-    const guardado = localStorage.getItem(`mezo_tema_${user.id}`);
-    if (guardado !== null) setModoOscuro(guardado === 'oscuro');
-  }, [user]);
+    document.documentElement.setAttribute('data-theme', 'oscuro');
+  }, []);
 
   // Cargar color del negocio desde Firestore cuando cambia negocio
   useEffect(() => {
     if (negocio?.colorPrimario) aplicarColor(negocio.colorPrimario);
   }, [negocio]);
 
-  // Aplicar el tema al <html> cada vez que cambia modoOscuro
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', modoOscuro ? 'oscuro' : 'claro');
-  }, [modoOscuro]);
-
-  function toggleModo() {
-    const nuevo = !modoOscuro;
-    setModoOscuro(nuevo);
-    if (user) localStorage.setItem(`mezo_tema_${user.id}`, nuevo ? 'oscuro' : 'claro');
-  }
+  function toggleModo() {} // no-op hasta que el modo claro esté listo
 
   function aplicarColor(hex) {
     _setColor(hex);

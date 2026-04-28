@@ -1,8 +1,11 @@
 import { useState, useMemo } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useDia } from '../context/DiaContext';
+import { usePlan } from '../hooks/usePlan';
+import { track } from '../services/analytics';
 import Navbar from '../components/layout/Navbar';
 import GraficaVentas from '../components/reportes/GraficaVentas';
 import KPIs, { calcularKPIs } from '../components/reportes/KPIs';
@@ -92,11 +95,16 @@ const TABS_REPORTES = [
 
 export default function Reportes() {
   const { abrirDia, cerrarDia }         = useDia();
+  const { limites }                     = usePlan();
+  const navigate                        = useNavigate();
   const [tabActivo, setTabActivo]       = useState('ventas');
   const [periodo, setPeriodo]           = useState('hoy');
   const [modalCierre, setModalCierre]   = useState(false);
+  const [modalUpgrade, setModalUpgrade] = useState(false);
   const { desde, hasta } = useMemo(() => calcularRango(periodo), [periodo]);
   const { ordenes, loading } = useOrdenes(desde, hasta);
+
+  const reportesCompletos = limites.tieneReportes === 'completo';
 
   const kpis      = useMemo(() => calcularKPIs(ordenes), [ordenes]);
   const grafData  = useMemo(() => agruparParaGrafica(ordenes, periodo), [ordenes, periodo]);
@@ -150,15 +158,30 @@ export default function Reportes() {
           <>
             {/* Filtros de período */}
             <div className="flex gap-1.5 mb-6">
-              {PERIODOS.map(p => (
-                <button key={p.id} onClick={() => setPeriodo(p.id)}
-                  className={`px-4 py-1.5 rounded-mezo-md text-sm font-body font-medium transition
-                    ${periodo === p.id
-                      ? 'bg-mezo-gold text-mezo-ink'
-                      : 'border border-mezo-ink-line text-mezo-stone hover:text-mezo-cream hover:border-mezo-gold/40'}`}>
-                  {p.label}
-                </button>
-              ))}
+              {PERIODOS.map(p => {
+                const bloqueado = !reportesCompletos && p.id !== 'hoy';
+                return (
+                  <button key={p.id}
+                    onClick={() => {
+                      if (bloqueado) {
+                        track.upgradePromptMostrado('reportes_historial', limites.label);
+                        setModalUpgrade(true);
+                        return;
+                      }
+                      setPeriodo(p.id);
+                    }}
+                    title={bloqueado ? 'Disponible en plan Pro — Ver historial completo' : ''}
+                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-mezo-md text-sm font-body font-medium transition
+                      ${bloqueado
+                        ? 'border border-mezo-ink-line text-mezo-stone opacity-50 cursor-not-allowed'
+                        : periodo === p.id
+                          ? 'bg-mezo-gold text-mezo-ink'
+                          : 'border border-mezo-ink-line text-mezo-stone hover:text-mezo-cream hover:border-mezo-gold/40'}`}>
+                    {bloqueado && <Lock size={11} />}
+                    {p.label}
+                  </button>
+                );
+              })}
             </div>
 
             {loading ? (
@@ -233,6 +256,37 @@ export default function Reportes() {
           onCerrar={() => { cerrarDia(); setModalCierre(false); }}
           onCancelar={() => setModalCierre(false)}
         />
+      )}
+
+      {/* Modal de upgrade — período bloqueado en plan Semilla */}
+      {modalUpgrade && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setModalUpgrade(false)}>
+          <div className="bg-mezo-ink-raised border border-mezo-gold/30 rounded-mezo-xl p-8 max-w-sm mx-4 text-center"
+            onClick={e => e.stopPropagation()}>
+            <p className="text-3xl mb-3">🔒</p>
+            <h3 className="text-mezo-cream font-body font-semibold text-lg mb-2">
+              Disponible en plan Pro
+            </h3>
+            <p className="text-mezo-stone font-body text-sm mb-6 leading-relaxed">
+              El historial completo — semana, mes, trimestre y año — está disponible en el plan Pro.
+              Accede a todas las gráficas y analiza el desempeño de tu negocio.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setModalUpgrade(false)}
+                className="flex-1 py-2.5 rounded-mezo-md text-sm font-body font-medium border border-mezo-ink-line text-mezo-stone hover:text-mezo-cream transition">
+                Cerrar
+              </button>
+              <button
+                onClick={() => { setModalUpgrade(false); navigate('/configuracion'); }}
+                className="flex-1 py-2.5 rounded-mezo-md text-sm font-body font-semibold transition"
+                style={{ background: '#C8903F', color: '#080706' }}>
+                Ver planes →
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

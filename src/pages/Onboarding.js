@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { track } from '../services/analytics';
 import MezoWordmark from '../components/brand/MezoWordmark';
 import BanderaColombiana from '../components/brand/BanderaColombiana';
 import StepBienvenida from '../components/onboarding/StepBienvenida';
@@ -49,7 +50,14 @@ export default function Onboarding() {
     setData(prev => ({ ...prev, ...fields }));
   }
 
-  const next = () => setStep(s => s + 1);
+  function next() {
+    const siguientePaso = step + 1;
+    if (step === 0) track.onboardingIniciado();
+    else if (siguientePaso === 7) track.onboardingCompletado({ tipo: data.tipo, tieneMesas: data.tieneMesas });
+    else track.onboardingPasoCompletado(step, { paso: LABEL_PASOS[step - 1] });
+    setStep(siguientePaso);
+  }
+
   const prev = () => setStep(s => Math.max(s - 1, 0));
 
   const STEPS = {
