@@ -5,12 +5,12 @@ import MezoWordmark from '../components/brand/MezoWordmark';
 import BanderaColombiana from '../components/brand/BanderaColombiana';
 
 const SLOGANS = [
-  'Vende más. Piensa menos.',
   'Todo el negocio, una pantalla.',
   'Menos caos. Más caja.',
   'El pulso de tu negocio.',
-  'Todo en orden, todo en caja.',
+  'Vende más. Piensa menos.',
   'Tu negocio, bajo control.',
+  'Abre, cobra, cierra.',
 ];
 
 function useSloganRotator(interval = 3000) {

@@ -20,6 +20,8 @@ import Configuracion from './pages/Configuracion';
 import Arqueo from './pages/Arqueo';
 import PantallaCocina from './pages/PantallaCocina';
 import Mensajes from './pages/Mensajes';
+import Terminos from './pages/Terminos';
+import Privacidad from './pages/Privacidad';
 
 // Redirige / al dashboard si está logueado, o a la Landing si no
 function RootRedirect() {
@@ -51,6 +53,9 @@ function App() {
             {/* Registro legacy compatible */}
             <Route path="/registro"  element={<Onboarding />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            {/* Páginas legales */}
+            <Route path="/terminos"   element={<Terminos />} />
+            <Route path="/privacidad" element={<Privacidad />} />
 
             {/* Protegidas */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
