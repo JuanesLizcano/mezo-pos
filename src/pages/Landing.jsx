@@ -6,9 +6,17 @@ import { useAuth } from '../context/AuthContext';
 
 // ─── Keyframes globales ───────────────────────────────────────────────────────
 const GLOBAL_STYLES = `
-  @keyframes mezoBorderSpin {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  @keyframes cardPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 1px #C8903F,
+                  0 0 20px rgba(200,144,63,0.1),
+                  0 0 0px rgba(200,144,63,0);
+    }
+    50% {
+      box-shadow: 0 0 0 1.5px #E4B878,
+                  0 0 40px rgba(200,144,63,0.25),
+                  0 0 80px rgba(200,144,63,0.08);
+    }
   }
   @keyframes mezoPulseTimer {
     0%, 100% { opacity: 1; }
@@ -17,6 +25,14 @@ const GLOBAL_STYLES = `
   @keyframes mezoGlow {
     0%, 100% { box-shadow: 0 0 0 0 rgba(200,144,63,0); }
     50%       { box-shadow: 0 0 20px 2px rgba(200,144,63,0.18); }
+  }
+  @keyframes particleFloat {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+    50%       { transform: translateY(-12px) scale(1.1); opacity: 0.6; }
+  }
+  @keyframes iaGlow {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(200,144,63,0.3), 0 0 16px rgba(200,144,63,0.05); }
+    50%       { box-shadow: 0 0 0 1px rgba(61,170,104,0.3), 0 0 16px rgba(61,170,104,0.05); }
   }
 `;
 
@@ -151,7 +167,7 @@ const PLANES = {
     cta: 'Comenzar ahora', ctaStyle: 'gold',
   },
   elite: {
-    nombre: 'Élite', precio: { mensual: 199900, anual: 159900 },
+    nombre: 'Élite', precio: { mensual: 249900, anual: 199900 },
     items: [
       { ok: true, text: 'Todo lo de Pro' },
       { ok: true, text: 'Sedes ilimitadas' },
@@ -167,9 +183,9 @@ const PLANES = {
 };
 
 const STATS = [
-  { value: 132000, display: n => `${new Intl.NumberFormat('es-CO').format(n)}+`, label: 'negocios gastronómicos en Colombia' },
-  { value: 40,     display: n => `+${n}%`,  label: 'más ventas en promedio con mezo' },
-  { value: 10,     display: n => `<${n}s`,  label: 'segundos por orden en el POS' },
+  { value: 59, display: n => `${n}%`,     label: 'de negocios gastronómicos sin sistema digital' },
+  { value: 5,  display: n => `<${n} min`, label: 'de configuración desde cero' },
+  { value: 10, display: n => `<${n}s`,    label: 'segundos por orden en el POS' },
 ];
 
 function formatCOP(n) {
@@ -428,37 +444,81 @@ function Slide5Empleados() {
 }
 
 function Slide6WhatsApp() {
+  // Vista del dueño: lista de conversaciones + chat activo
+  const conversaciones = [
+    { nombre: 'Carlos Rodríguez', hora: '14:23', preview: '2 capuchinos y una...', activo: true,  initials: 'CR' },
+    { nombre: 'María González',   hora: '13:45', preview: '¿Hacen domicilios a...',activo: false, initials: 'MG' },
+    { nombre: 'Juan Pérez',       hora: '12:30', preview: 'Pedido confirmado',      activo: false, initials: 'JP', listo: true },
+  ];
   const mensajes = [
-    { de: 'cliente', texto: 'Hola, ¿hacen domicilios?' },
-    { de: 'bot', texto: '¡Hola! Sí, hacemos domicilios hasta las 9pm. ¿Qué te gustaría pedir? 🍽️' },
-    { de: 'cliente', texto: 'Un capuchino y dos medialunas' },
-    { de: 'bot', texto: 'Perfecto, tu pedido: Capuchino $8.500 + 2 Medialunas $7.000 = $15.500. ¿Confirmas? 🙌' },
+    { de: 'cliente', texto: 'Hola! Quiero pedir 2 capuchinos y una porción de medialunas para llevar 🙏', hora: '14:21' },
+    { de: 'bot', texto: '¡Hola Carlos! Tu pedido:\n- 2× Capuchino — $17.000\n- 1× Medialunas — $3.500\nTotal: $20.500 💰\n¿Confirmas el pedido?', hora: '14:21' },
+    { de: 'cliente', texto: 'Sí perfecto!', hora: '14:22' },
+    { de: 'bot', texto: '✅ Pedido confirmado y enviado a cocina. Listo en ~10 min. ¡Gracias!', hora: '14:23' },
   ];
   return (
-    <div className="p-5 relative">
-      <div className="flex items-center gap-2.5 mb-4 pb-3 border-b" style={{ borderColor: '#2A2520' }}>
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm" style={{ background: '#25D366' }}>📱</div>
-        <div>
-          <p className="font-body font-semibold text-xs" style={{ color: '#F4ECD8' }}>Bot mezo</p>
-          <p className="font-body text-xs" style={{ color: '#3DAA68' }}>● En línea</p>
+    <div className="flex" style={{ minHeight: 320 }}>
+      {/* Panel izquierdo — lista de conversaciones estilo WhatsApp Business */}
+      <div className="flex flex-col" style={{ width: 190, background: '#0F1A0F', borderRight: '1px solid #1A2E1A', flexShrink: 0 }}>
+        <div className="px-3 py-2.5 flex items-center justify-between border-b" style={{ borderColor: '#1A2E1A' }}>
+          <span className="font-body font-semibold" style={{ color: '#F4ECD8', fontSize: 10 }}>📱 Pedidos WhatsApp</span>
+          <span className="font-mono font-bold rounded-full px-1.5 py-0.5" style={{ background: '#25D366', color: '#fff', fontSize: 9 }}>3</span>
         </div>
-        <span className="ml-auto font-body text-xs px-2.5 py-0.5 rounded-full font-semibold"
-          style={{ background: 'rgba(155,127,232,0.15)', color: '#C8B8FF', border: '1px solid rgba(155,127,232,0.3)' }}>
-          ✨ Próximamente
-        </span>
-      </div>
-      <div className="space-y-2.5">
-        {mensajes.map((m, i) => (
-          <div key={i} className={`flex ${m.de === 'bot' ? 'justify-start' : 'justify-end'}`}>
-            <div className="max-w-[78%] px-3.5 py-2 font-body text-xs leading-relaxed"
-              style={m.de === 'bot'
-                ? { background: '#1A1713', color: '#D9CEB5', borderRadius: '16px 16px 16px 4px', border: '1px solid rgba(200,144,63,0.18)' }
-                : { background: 'rgba(37,211,102,0.12)', color: '#D9CEB5', borderRadius: '16px 16px 4px 16px', border: '1px solid rgba(37,211,102,0.18)' }}>
-              {m.de === 'bot' && <p className="font-semibold mb-0.5" style={{ color: '#C8903F', fontSize: 9 }}>mezo bot 🤖</p>}
-              {m.texto}
+        {conversaciones.map((c, i) => (
+          <div key={i} className="px-3 py-2.5 border-b cursor-pointer"
+            style={{ borderColor: '#1A2E1A', background: c.activo ? 'rgba(37,211,102,0.08)' : 'transparent' }}>
+            <div className="flex items-center justify-between mb-0.5">
+              <div className="flex items-center gap-1">
+                <span style={{ fontSize: 7, color: c.listo ? '#A89880' : '#25D366' }}>{c.listo ? '✅' : '🟢'}</span>
+                <span className="font-body font-semibold" style={{ color: c.activo ? '#F4ECD8' : '#A89880', fontSize: 10 }}>{c.nombre}</span>
+              </div>
+              <span className="font-body" style={{ color: '#5A4F46', fontSize: 9 }}>{c.hora}</span>
             </div>
+            <p className="font-body" style={{ color: '#5A4F46', fontSize: 9 }}>{c.preview}</p>
           </div>
         ))}
+      </div>
+
+      {/* Panel derecho — conversación activa con Carlos */}
+      <div className="flex-1 flex flex-col" style={{ background: '#0A0A0A', minWidth: 0 }}>
+        {/* Header del chat */}
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b" style={{ borderColor: '#2A2520', background: '#141210' }}>
+          <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold flex-shrink-0"
+            style={{ background: 'rgba(37,211,102,0.15)', color: '#25D366', fontSize: 10 }}>CR</div>
+          <div className="flex-1 min-w-0">
+            <p className="font-body font-semibold" style={{ color: '#F4ECD8', fontSize: 11 }}>Carlos Rodríguez</p>
+            <p className="font-body" style={{ color: '#25D366', fontSize: 9 }}>● En línea</p>
+          </div>
+          {/* Botón "Convertir en orden" — acción clave para el dueño */}
+          <button className="font-body font-semibold rounded-lg transition flex-shrink-0"
+            style={{ background: 'rgba(200,144,63,0.15)', color: '#C8903F', border: '1px solid rgba(200,144,63,0.4)', fontSize: 9, padding: '4px 8px' }}>
+            → Convertir en orden
+          </button>
+        </div>
+
+        {/* Mensajes del chat */}
+        <div className="flex-1 p-3 space-y-2 overflow-hidden">
+          {mensajes.map((m, i) => (
+            <div key={i} className={`flex ${m.de === 'bot' ? 'justify-start' : 'justify-end'}`}>
+              <div className="max-w-[80%] px-2.5 py-1.5 font-body"
+                style={m.de === 'bot'
+                  ? { background: '#1A1713', color: '#D9CEB5', borderRadius: '12px 12px 12px 3px', border: '1px solid rgba(200,144,63,0.18)', fontSize: 10, lineHeight: 1.5 }
+                  : { background: 'rgba(37,211,102,0.1)', color: '#D9CEB5', borderRadius: '12px 12px 3px 12px', border: '1px solid rgba(37,211,102,0.18)', fontSize: 10, lineHeight: 1.5 }}>
+                {m.de === 'bot' && <p className="font-semibold mb-0.5" style={{ color: '#C8903F', fontSize: 8 }}>Bot mezo ✨</p>}
+                <span style={{ whiteSpace: 'pre-line' }}>{m.texto}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer con caption y badge */}
+        <div className="px-3 pb-2 pt-1 flex items-center justify-between border-t" style={{ borderColor: '#1A1713' }}>
+          <span className="font-body italic" style={{ color: '#4A3F46', fontSize: 9 }}>Tu bot toma pedidos mientras tú cocinas</span>
+          <span className="font-body font-semibold rounded-full"
+            style={{ background: 'rgba(155,127,232,0.15)', color: '#C8B8FF', border: '1px solid rgba(155,127,232,0.3)', fontSize: 8, padding: '3px 8px' }}>
+            ✨ Próximamente · Plan Élite
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -573,6 +633,20 @@ function SliderMockups() {
   );
 }
 
+// ─── Partículas del hero — posiciones fijas para evitar re-renders ───────────
+const HERO_PARTICLES = [
+  { left: '12%', top: '22%', size: 3, dur: 3.2, delay: 0    },
+  { left: '28%', top: '15%', size: 4, dur: 2.8, delay: 0.8  },
+  { left: '45%', top: '30%', size: 3, dur: 3.8, delay: 1.5  },
+  { left: '63%', top: '18%', size: 4, dur: 2.5, delay: 0.3  },
+  { left: '78%', top: '25%', size: 3, dur: 3.5, delay: 1.1  },
+  { left: '18%', top: '65%', size: 4, dur: 2.9, delay: 0.6  },
+  { left: '55%', top: '72%', size: 3, dur: 3.3, delay: 1.8  },
+  { left: '82%', top: '60%', size: 4, dur: 2.6, delay: 0.4  },
+  { left: '35%', top: '80%', size: 3, dur: 3.7, delay: 1.2  },
+  { left: '90%', top: '40%', size: 3, dur: 3.0, delay: 0.9  },
+];
+
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 function Navbar({ scrolled }) {
   const { text: ctaText, visible: ctaVisible } = useTextRotator(CTA_TEXTS, 3000);
@@ -633,11 +707,24 @@ function Hero() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
 
+  // Animación estándar — deslizamiento desde abajo
   const anim = (delay) => ({
     opacity:    mounted ? 1 : 0,
     transform:  mounted ? 'translateY(0)' : 'translateY(30px)',
     transition: `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`,
   });
+
+  // Animación con blur — para el wordmark
+  const animBlur = {
+    opacity:    mounted ? 1 : 0,
+    filter:     mounted ? 'blur(0)' : 'blur(8px)',
+    transform:  mounted ? 'translateY(0)' : 'translateY(20px)',
+    transition: 'opacity 1s ease-out, filter 1s ease-out, transform 1s ease-out',
+  };
+
+  // Palabras del título con stagger escalonado de 50ms
+  const palabras1 = ['Cobra', 'más', 'rápido.'];
+  const palabras2 = ['Vende', 'más', 'inteligente.'];
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-20 pb-24 overflow-hidden">
@@ -647,27 +734,66 @@ function Hero() {
           className="w-full h-full object-cover" style={{ opacity: 0.28 }} />
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,7,6,0.6) 0%, rgba(8,7,6,0.82) 55%, #080706 100%)' }} />
       </div>
+
+      {/* Glow central */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none"
         style={{ background: 'radial-gradient(ellipse at center, rgba(200,144,63,0.14) 0%, transparent 70%)' }} />
 
+      {/* Partículas de luz doradas */}
+      {HERO_PARTICLES.map((p, i) => (
+        <div key={i} className="absolute pointer-events-none rounded-full"
+          style={{
+            left: p.left, top: p.top,
+            width: p.size, height: p.size,
+            background: '#C8903F',
+            animation: `particleFloat ${p.dur}s ease-in-out ${p.delay}s infinite`,
+          }} />
+      ))}
+
       <div className="relative z-10 max-w-4xl mx-auto">
-        <div style={anim(0)}>
+        {/* Wordmark con blur de entrada */}
+        <div style={{ ...animBlur, marginBottom: 18 }}>
+          <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic', fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', color: '#C8903F', fontWeight: 700, opacity: 0.9 }}>
+            mezo
+          </span>
+        </div>
+
+        <div style={anim(200)}>
           <span className="inline-flex items-center gap-2 text-xs font-body font-semibold px-4 py-1.5 rounded-full mb-6"
             style={{ background: 'rgba(200,144,63,0.12)', color: '#E4B878', border: '1px solid rgba(200,144,63,0.3)' }}>
             🇨🇴 El POS hecho para Colombia
           </span>
         </div>
 
-        <h1 style={{ ...anim(60), fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2.4rem, 6vw, 5rem)', color: '#F4ECD8', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.02em', fontVariationSettings: '"SOFT" 50, "opsz" 72' }}>
-          Cobra más rápido.<br />
-          <span style={{ fontStyle: 'italic', color: '#C8903F' }}>Vende más inteligente.</span>
+        {/* Título con stagger por palabra */}
+        <h1 style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2.4rem, 6vw, 5rem)', color: '#F4ECD8', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.02em', fontVariationSettings: '"SOFT" 50, "opsz" 72' }}>
+          {palabras1.map((w, i) => (
+            <span key={i} style={{
+              display: 'inline-block',
+              opacity:    mounted ? 1 : 0,
+              transform:  mounted ? 'translateY(0)' : 'translateY(40px)',
+              transition: `opacity 0.7s ease ${360 + i * 50}ms, transform 0.7s ease ${360 + i * 50}ms`,
+              marginRight: '0.25em',
+            }}>{w}</span>
+          ))}<br />
+          <span style={{ fontStyle: 'italic', color: '#C8903F' }}>
+            {palabras2.map((w, i) => (
+              <span key={i} style={{
+                display: 'inline-block',
+                opacity:    mounted ? 1 : 0,
+                transform:  mounted ? 'translateY(0)' : 'translateY(40px)',
+                transition: `opacity 0.7s ease ${360 + (palabras1.length + i) * 50}ms, transform 0.7s ease ${360 + (palabras1.length + i) * 50}ms`,
+                marginRight: i < palabras2.length - 1 ? '0.25em' : 0,
+              }}>{w}</span>
+            ))}
+          </span>
         </h1>
 
-        <p className="font-body mt-6 mb-8 mx-auto" style={{ ...anim(200), color: '#A89880', fontSize: 'clamp(1rem, 2vw, 1.15rem)', maxWidth: 560, lineHeight: 1.7 }}>
+        <p className="font-body mt-6 mb-8 mx-auto" style={{ ...anim(600), color: '#A89880', fontSize: 'clamp(1rem, 2vw, 1.15rem)', maxWidth: 560, lineHeight: 1.7 }}>
           El sistema de punto de venta que entiende cómo funciona tu negocio. Mesas en tiempo real, todos los métodos de pago colombianos y reportes con inteligencia artificial.
         </p>
 
-        <div style={anim(380)}>
+        <div style={anim(750)}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             <Link to="/register"
               className="font-body font-semibold px-8 py-4 rounded-xl text-base transition w-full sm:w-auto"
@@ -978,9 +1104,9 @@ function SeccionIA() {
           {cards.map((card, i) => (
             <Fade key={i} delay={i * 90}>
               <div className="p-6 rounded-2xl border relative overflow-hidden transition"
-                style={{ background: 'linear-gradient(135deg, rgba(20,18,16,0.9) 0%, rgba(28,23,18,0.9) 100%)', borderColor: 'rgba(200,144,63,0.18)', animation: 'mezoGlow 4s ease-in-out infinite' }}
+                style={{ background: 'linear-gradient(135deg, rgba(20,18,16,0.9) 0%, rgba(28,23,18,0.9) 100%)', borderColor: 'rgba(200,144,63,0.18)', animation: `iaGlow 3s ease-in-out ${i * 0.75}s infinite` }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.4)'; e.currentTarget.style.animation = 'none'; e.currentTarget.style.boxShadow = '0 0 30px rgba(200,144,63,0.1)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.18)'; e.currentTarget.style.animation = 'mezoGlow 4s ease-in-out infinite'; e.currentTarget.style.boxShadow = 'none'; }}>
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.18)'; e.currentTarget.style.animation = `iaGlow 3s ease-in-out ${i * 0.75}s infinite`; e.currentTarget.style.boxShadow = 'none'; }}>
                 <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none"
                   style={{ background: `radial-gradient(ellipse at top right, ${card.planColor}18 0%, transparent 70%)` }} />
                 <div className="text-3xl mb-3">{card.emoji}</div>
@@ -1026,11 +1152,21 @@ function Features() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURES_GRID.map((f, i) => (
             <Fade key={f.title} delay={i * 55}>
-              <div className="p-5 rounded-2xl border transition"
-                style={{ background: '#141210', borderColor: '#2A2520' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.35)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2520'; }}>
-                <div className="text-2xl mb-3">{f.emoji}</div>
+              <div className="p-5 rounded-2xl border"
+                style={{ background: '#141210', borderColor: '#2A2520', transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)' }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(200,144,63,0.4)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  const ico = e.currentTarget.querySelector('.feat-ico');
+                  if (ico) ico.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = '#2A2520';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  const ico = e.currentTarget.querySelector('.feat-ico');
+                  if (ico) ico.style.transform = 'scale(1)';
+                }}>
+                <div className="feat-ico text-2xl mb-3" style={{ display: 'inline-block', transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)' }}>{f.emoji}</div>
                 <h3 className="font-body font-semibold mb-2" style={{ color: '#F4ECD8', fontSize: 14 }}>{f.title}</h3>
                 <p className="font-body text-sm" style={{ color: '#7A6A58', lineHeight: 1.6 }}>{f.desc}</p>
               </div>
@@ -1042,9 +1178,168 @@ function Features() {
   );
 }
 
+// ─── Modal contacto plan Élite ────────────────────────────────────────────────
+const CIUDADES_MODAL = [
+  'Bogotá D.C.', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena',
+  'Cúcuta', 'Bucaramanga', 'Pereira', 'Santa Marta', 'Ibagué',
+  'Manizales', 'Villavicencio', 'Pasto', 'Montería', 'Valledupar',
+  'Armenia', 'Neiva', 'Popayán', 'Sincelejo', 'Tunja',
+  'Florencia', 'Chía', 'Zipaquirá', 'Otra ciudad',
+];
+
+const TIPOS_NEGOCIO_MODAL = [
+  'Cafetería', 'Restaurante', 'Panadería / Pastelería', 'Bar / Taberna',
+  'Comida rápida', 'Heladería', 'Frutería / Jugos', 'Pizzería',
+  'Cevichería / Mariscos', 'Comida saludable', 'Cocina de mercado', 'Otro',
+];
+
+function ModalContactoElite({ open, onClose }) {
+  const [form, setForm] = useState({
+    nombre: '', negocio: '', whatsapp: '', correo: '',
+    ciudad: '', tipo: '', sedes: '', mensaje: '',
+  });
+  const [toast, setToast] = useState(false);
+
+  if (!open) return null;
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    // Guardar en localStorage para seguimiento comercial
+    const leads = JSON.parse(localStorage.getItem('mezo_elite_leads') || '[]');
+    leads.push({ ...form, fecha: new Date().toISOString() });
+    localStorage.setItem('mezo_elite_leads', JSON.stringify(leads));
+    // TODO producción: POST a /api/contacto con Resend → ventas@mezo.co
+    setToast(true);
+    setTimeout(() => { setToast(false); onClose(); }, 2800);
+  }
+
+  const inputSt = {
+    width: '100%', padding: '10px 14px', borderRadius: 10,
+    background: '#0D0B09', border: '1px solid #2A2520',
+    color: '#F4ECD8', fontSize: 13, fontFamily: '"DM Sans", system-ui, sans-serif',
+    outline: 'none',
+  };
+  const labelSt = {
+    display: 'block', fontSize: 11, fontWeight: 600, color: '#7A6A58',
+    fontFamily: '"DM Sans", system-ui, sans-serif', marginBottom: 5,
+    textTransform: 'uppercase', letterSpacing: '0.05em',
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(8px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+
+      {/* Toast de confirmación */}
+      {toast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl font-body font-semibold text-sm"
+          style={{ background: '#3DAA68', color: '#fff', boxShadow: '0 4px 20px rgba(61,170,104,0.4)', pointerEvents: 'none' }}>
+          ✅ Recibido. Te contactamos pronto.
+        </div>
+      )}
+
+      <div className="w-full max-w-lg rounded-2xl border overflow-y-auto"
+        style={{ background: '#141210', borderColor: 'rgba(200,144,63,0.3)', maxHeight: '90vh', boxShadow: '0 0 60px rgba(200,144,63,0.15)' }}>
+
+        {/* Encabezado */}
+        <div className="flex items-start justify-between px-7 pt-7 pb-5 border-b" style={{ borderColor: '#2A2520' }}>
+          <div>
+            <h2 style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 22, color: '#F4ECD8', fontWeight: 700, lineHeight: 1.2, marginBottom: 6 }}>
+              Cuéntanos sobre tu negocio
+            </h2>
+            <p className="font-body text-sm" style={{ color: '#7A6A58', lineHeight: 1.6, maxWidth: 360 }}>
+              Un asesor de mezo te contactará en menos de 24 horas para diseñar el plan perfecto para tu operación.
+            </p>
+          </div>
+          <button onClick={onClose} className="ml-4 mt-1 flex-shrink-0 font-body"
+            style={{ color: '#4A3F35', fontSize: 18, lineHeight: 1 }}>✕</button>
+        </div>
+
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="px-7 py-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label style={labelSt}>Nombre completo *</label>
+              <input required value={form.nombre} onChange={set('nombre')} style={inputSt} placeholder="Tu nombre" />
+            </div>
+            <div>
+              <label style={labelSt}>Nombre del negocio *</label>
+              <input required value={form.negocio} onChange={set('negocio')} style={inputSt} placeholder="Café Las Margaritas" />
+            </div>
+            <div>
+              <label style={labelSt}>WhatsApp *</label>
+              <input required value={form.whatsapp} onChange={set('whatsapp')} type="tel" style={inputSt} placeholder="+57 300 000 0000" />
+            </div>
+            <div>
+              <label style={labelSt}>Correo electrónico *</label>
+              <input required value={form.correo} onChange={set('correo')} type="email" style={inputSt} placeholder="hola@tucafe.com" />
+            </div>
+            <div>
+              <label style={labelSt}>Ciudad</label>
+              <select value={form.ciudad} onChange={set('ciudad')} style={{ ...inputSt, cursor: 'pointer' }}>
+                <option value="">Selecciona tu ciudad</option>
+                {CIUDADES_MODAL.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelSt}>Tipo de negocio</label>
+              <select value={form.tipo} onChange={set('tipo')} style={{ ...inputSt, cursor: 'pointer' }}>
+                <option value="">¿Qué tipo de negocio?</option>
+                {TIPOS_NEGOCIO_MODAL.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={labelSt}>Número de sedes</label>
+            <select value={form.sedes} onChange={set('sedes')} style={{ ...inputSt, cursor: 'pointer' }}>
+              <option value="">¿Cuántas sedes tienes?</option>
+              <option value="1">1 sede</option>
+              <option value="2-5">2 a 5 sedes</option>
+              <option value="6-10">6 a 10 sedes</option>
+              <option value="+10">Más de 10 sedes</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={labelSt}>Mensaje o preguntas (opcional)</label>
+            <textarea value={form.mensaje} onChange={set('mensaje')} rows={3}
+              style={{ ...inputSt, resize: 'vertical' }}
+              placeholder="Cuéntanos qué necesitas, cuántos empleados tienen, qué problemas quieren resolver..." />
+          </div>
+
+          <button type="submit"
+            className="w-full font-body font-semibold py-3.5 rounded-xl text-sm transition"
+            style={{ background: '#C8903F', color: '#080706', boxShadow: '0 0 20px rgba(200,144,63,0.3)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#A87528'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
+            Enviar — Te contactamos hoy →
+          </button>
+
+          {/* Badges de confianza */}
+          <div className="flex flex-wrap justify-center gap-4 pt-1">
+            {[
+              { icon: '🔒', text: 'Tus datos están protegidos' },
+              { icon: '⚡', text: 'Respuesta en menos de 24h' },
+              { icon: '🇨🇴', text: 'Equipo colombiano' },
+            ].map(b => (
+              <span key={b.text} className="font-body text-xs flex items-center gap-1" style={{ color: '#5A4F46' }}>
+                {b.icon} {b.text}
+              </span>
+            ))}
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Precios ──────────────────────────────────────────────────────────────────
 function Precios() {
   const [anual, setAnual] = useState(false);
+  const [modalElite, setModalElite] = useState(false);
   return (
     <section id="precios" className="py-24 px-4" style={{ background: '#0A0907' }}>
       <div className="max-w-5xl mx-auto">
@@ -1071,6 +1366,27 @@ function Precios() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
           {Object.entries(PLANES).map(([key, plan], i) => {
+            // CTA diferenciado: Élite abre modal, Pro y Semilla van a /register
+            const ctaEl = key === 'elite' ? (
+              <button onClick={() => setModalElite(true)}
+                className="block w-full text-center font-body font-semibold py-3 rounded-xl text-sm transition relative z-10"
+                style={{ border: '1px solid rgba(200,144,63,0.4)', color: '#E4B878', background: 'transparent' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,144,63,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                {plan.cta}
+              </button>
+            ) : (
+              <Link to="/register"
+                className="block text-center font-body font-semibold py-3 rounded-xl text-sm transition relative z-10"
+                style={plan.ctaStyle === 'gold'
+                  ? { background: '#C8903F', color: '#080706' }
+                  : { border: '1px solid rgba(200,144,63,0.4)', color: '#E4B878', background: 'transparent' }}
+                onMouseEnter={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#A87528' : 'rgba(200,144,63,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#C8903F' : 'transparent'; }}>
+                {plan.cta}
+              </Link>
+            );
+
             // Contenido compartido de las 3 cards
             const cardInner = (
               <>
@@ -1094,24 +1410,16 @@ function Precios() {
                     </li>
                   ))}
                 </ul>
-                <Link to="/register"
-                  className="block text-center font-body font-semibold py-3 rounded-xl text-sm transition relative z-10"
-                  style={plan.ctaStyle === 'gold'
-                    ? { background: '#C8903F', color: '#080706' }
-                    : { border: '1px solid rgba(200,144,63,0.4)', color: '#E4B878', background: 'transparent' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#A87528' : 'rgba(200,144,63,0.1)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#C8903F' : 'transparent'; }}>
-                  {plan.cta}
-                </Link>
+                {ctaEl}
               </>
             );
 
             if (key === 'pro') {
               return (
                 <Fade key={key} delay={i * 100}>
-                  {/* Card Pro — badge encima + borde giratorio en todo el contorno */}
+                  {/* Card Pro — badge encima + pulso de luz suave */}
                   <div style={{ position: 'relative', paddingTop: 20 }}>
-                    {/* Badge sobresaliente — fuera del overflow:hidden */}
+                    {/* Badge sobresaliente */}
                     <span style={{
                       position: 'absolute', top: 0, left: '50%',
                       transform: 'translateX(-50%) translateY(-50%)',
@@ -1123,27 +1431,13 @@ function Precios() {
                     }}>
                       {plan.badge}
                     </span>
-                    {/* Contenedor con borde giratorio */}
+                    {/* Card con pulso de luz — respiración suave en todo el contorno */}
                     <div style={{
-                      position: 'relative', borderRadius: 18, overflow: 'hidden',
-                      boxShadow: '0 0 0 1.5px #C8903F, 0 0 30px rgba(200,144,63,0.15)',
+                      position: 'relative', borderRadius: 18,
+                      background: 'linear-gradient(180deg, rgba(200,144,63,0.08) 0%, #141210 100%)',
+                      animation: 'cardPulse 2.5s ease-in-out infinite',
                     }}>
-                      {/* Gradiente cónico que gira — crea el shimmer en todo el borde */}
-                      <div style={{
-                        position: 'absolute', top: '50%', left: '50%',
-                        width: '200%', height: '200%', pointerEvents: 'none',
-                        background: 'conic-gradient(from 0deg, transparent 0deg, transparent 62deg, #C8903F 74deg, #E4B878 90deg, #C8903F 106deg, transparent 118deg, transparent 360deg)',
-                        animation: 'mezoBorderSpin 3s linear infinite',
-                        zIndex: 0,
-                      }} />
-                      {/* Fondo interior — tapa el centro y deja visible solo el borde */}
-                      <div style={{
-                        position: 'absolute', inset: '1.5px', borderRadius: 16,
-                        background: 'linear-gradient(180deg, rgba(200,144,63,0.08) 0%, #141210 100%)',
-                        zIndex: 0,
-                      }} />
-                      {/* Contenido de la card */}
-                      <div className="relative flex flex-col p-7" style={{ zIndex: 1 }}>
+                      <div className="relative flex flex-col p-7">
                         {cardInner}
                       </div>
                     </div>
@@ -1167,6 +1461,7 @@ function Precios() {
           30 días gratis en todos los planes
         </p>
       </div>
+      <ModalContactoElite open={modalElite} onClose={() => setModalElite(false)} />
     </section>
   );
 }
