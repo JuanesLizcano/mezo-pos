@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { register as apiRegister, verifyOtp, resendOtp } from '../services';
 import { useAuth } from '../context/AuthContext';
 import MezoWordmark from '../components/brand/MezoWordmark';
-import BanderaColombiana from '../components/brand/BanderaColombiana';
 import toast from 'react-hot-toast';
 
 const OTP_DURACION_SEG  = 5 * 60; // 5 minutos
@@ -204,7 +203,7 @@ function StepOtp({ email, onVerified }) {
           : 'Reenviar código'}
       </button>
 
-      {process.env.REACT_APP_USE_MOCK === 'true' && (
+      {process.env.REACT_APP_USE_MOCK === 'true' && process.env.NODE_ENV !== 'production' && (
         <p className="text-center text-xs text-mezo-stone/50 font-body">Demo: código 123456</p>
       )}
     </form>
@@ -231,7 +230,6 @@ export default function Register() {
 
   return (
     <div className="relative min-h-screen bg-mezo-ink flex items-center justify-center px-4 overflow-hidden">
-      <BanderaColombiana />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <MezoWordmark height={100} color="#C8903F" />

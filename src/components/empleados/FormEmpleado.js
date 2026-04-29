@@ -21,7 +21,9 @@ export default function FormEmpleado({ inicial, onGuardar, onCancelar, loading }
 
   function handleSubmit(e) {
     e.preventDefault();
+    if (!nombre.trim()) return;
     if (!roles.length) return;
+    if (pin.length !== 4) return;
     onGuardar({ nombre: nombre.trim(), correo: correo.trim(), pin, roles });
   }
 

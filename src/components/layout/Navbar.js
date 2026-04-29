@@ -51,11 +51,11 @@ export default function Navbar() {
             >
               <Icon size={16} />
               {label}
-              {/* Badge dorado — feature nueva próximamente */}
+              {/* Badge "próximamente" en Mensajes — feature en construcción */}
               {to === '/mensajes' && (
                 <span className="absolute -top-1 -right-1 font-bold leading-none"
-                  style={{ fontSize: 8, background: '#C8903F', color: '#080706', padding: '2px 4px', borderRadius: 3 }}>
-                  nuevo
+                  style={{ fontSize: 7, background: '#4A3F35', color: '#A89880', padding: '2px 5px', borderRadius: 3 }}>
+                  pronto
                 </span>
               )}
             </NavLink>

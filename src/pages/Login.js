@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import MezoWordmark from '../components/brand/MezoWordmark';
-import BanderaColombiana from '../components/brand/BanderaColombiana';
 
 const SLOGANS = [
   'Todo el negocio, una pantalla.',
@@ -103,7 +102,6 @@ export default function Login() {
 
   return (
     <div className="relative min-h-screen bg-mezo-ink flex items-center justify-center px-4 overflow-hidden">
-      <BanderaColombiana />
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <MezoWordmark height={120} color="#C8903F" />

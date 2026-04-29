@@ -6,9 +6,9 @@ import { useAuth } from '../context/AuthContext';
 
 // ─── Keyframes globales ───────────────────────────────────────────────────────
 const GLOBAL_STYLES = `
-  @keyframes mezoProShimmer {
-    0%   { transform: translateY(-120%); }
-    100% { transform: translateY(220%); }
+  @keyframes mezoBorderSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
   }
   @keyframes mezoPulseTimer {
     0%, 100% { opacity: 1; }
@@ -1069,35 +1069,11 @@ function Precios() {
           </div>
         </Fade>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Object.entries(PLANES).map(([key, plan], i) => (
-            <Fade key={key} delay={i * 100}>
-              <div className="relative flex flex-col p-7 rounded-2xl border h-full overflow-hidden"
-                style={{
-                  background:  key === 'pro' ? 'linear-gradient(180deg, rgba(200,144,63,0.08) 0%, #141210 100%)' : '#141210',
-                  borderColor: key === 'pro' ? '#C8903F' : '#2A2520',
-                  boxShadow:   key === 'pro' ? '0 0 40px rgba(200,144,63,0.1)' : 'none',
-                }}>
-
-                {/* Shimmer para card Pro */}
-                {key === 'pro' && (
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ borderRadius: 'inherit' }}>
-                    <div style={{
-                      position: 'absolute', top: '-50%', left: '-20%',
-                      width: '60%', height: '200%',
-                      background: 'linear-gradient(to bottom, transparent 0%, rgba(200,144,63,0.12) 40%, rgba(200,144,63,0.18) 50%, rgba(200,144,63,0.12) 60%, transparent 100%)',
-                      animation: 'mezoProShimmer 3.5s ease-in-out infinite',
-                    }} />
-                  </div>
-                )}
-
-                {plan.badge && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-body font-bold px-4 py-1 rounded-full whitespace-nowrap"
-                    style={{ background: '#C8903F', color: '#080706' }}>
-                    {plan.badge}
-                  </span>
-                )}
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {Object.entries(PLANES).map(([key, plan], i) => {
+            // Contenido compartido de las 3 cards
+            const cardInner = (
+              <>
                 <p className="font-body font-semibold mb-1" style={{ color: '#7A6A58', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                   {plan.nombre}
                 </p>
@@ -1107,10 +1083,7 @@ function Precios() {
                 <p className="font-body text-xs mb-1" style={{ color: '#7A6A58' }}>
                   /mes{anual ? ' · facturado anualmente' : ''}
                 </p>
-                <p className="font-body text-xs mb-6" style={{ color: '#3DAA68' }}>
-                  30 días gratis incluidos
-                </p>
-
+                <p className="font-body text-xs mb-6" style={{ color: '#3DAA68' }}>30 días gratis incluidos</p>
                 <ul className="space-y-3 flex-1 mb-8">
                   {plan.items.map((it, j) => (
                     <li key={j} className="flex items-start gap-2.5 font-body text-sm" style={{ color: it.ok ? '#D9CEB5' : '#4A3F35' }}>
@@ -1121,7 +1094,6 @@ function Precios() {
                     </li>
                   ))}
                 </ul>
-
                 <Link to="/register"
                   className="block text-center font-body font-semibold py-3 rounded-xl text-sm transition relative z-10"
                   style={plan.ctaStyle === 'gold'
@@ -1131,9 +1103,64 @@ function Precios() {
                   onMouseLeave={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#C8903F' : 'transparent'; }}>
                   {plan.cta}
                 </Link>
-              </div>
-            </Fade>
-          ))}
+              </>
+            );
+
+            if (key === 'pro') {
+              return (
+                <Fade key={key} delay={i * 100}>
+                  {/* Card Pro — badge encima + borde giratorio en todo el contorno */}
+                  <div style={{ position: 'relative', paddingTop: 20 }}>
+                    {/* Badge sobresaliente — fuera del overflow:hidden */}
+                    <span style={{
+                      position: 'absolute', top: 0, left: '50%',
+                      transform: 'translateX(-50%) translateY(-50%)',
+                      background: 'linear-gradient(135deg, #C8903F 0%, #E4B878 100%)',
+                      color: '#080706', fontWeight: 700, fontSize: '0.78rem',
+                      padding: '6px 20px', borderRadius: 100, whiteSpace: 'nowrap',
+                      fontFamily: '"DM Sans", system-ui, sans-serif', zIndex: 2,
+                      boxShadow: '0 2px 14px rgba(200,144,63,0.4)',
+                    }}>
+                      {plan.badge}
+                    </span>
+                    {/* Contenedor con borde giratorio */}
+                    <div style={{
+                      position: 'relative', borderRadius: 18, overflow: 'hidden',
+                      boxShadow: '0 0 0 1.5px #C8903F, 0 0 30px rgba(200,144,63,0.15)',
+                    }}>
+                      {/* Gradiente cónico que gira — crea el shimmer en todo el borde */}
+                      <div style={{
+                        position: 'absolute', top: '50%', left: '50%',
+                        width: '200%', height: '200%', pointerEvents: 'none',
+                        background: 'conic-gradient(from 0deg, transparent 0deg, transparent 62deg, #C8903F 74deg, #E4B878 90deg, #C8903F 106deg, transparent 118deg, transparent 360deg)',
+                        animation: 'mezoBorderSpin 3s linear infinite',
+                        zIndex: 0,
+                      }} />
+                      {/* Fondo interior — tapa el centro y deja visible solo el borde */}
+                      <div style={{
+                        position: 'absolute', inset: '1.5px', borderRadius: 16,
+                        background: 'linear-gradient(180deg, rgba(200,144,63,0.08) 0%, #141210 100%)',
+                        zIndex: 0,
+                      }} />
+                      {/* Contenido de la card */}
+                      <div className="relative flex flex-col p-7" style={{ zIndex: 1 }}>
+                        {cardInner}
+                      </div>
+                    </div>
+                  </div>
+                </Fade>
+              );
+            }
+
+            return (
+              <Fade key={key} delay={i * 100}>
+                <div className="relative flex flex-col p-7 rounded-2xl border h-full"
+                  style={{ background: '#141210', borderColor: '#2A2520' }}>
+                  {cardInner}
+                </div>
+              </Fade>
+            );
+          })}
         </div>
 
         <p className="text-center font-body text-sm mt-8" style={{ color: '#7A6A58' }}>

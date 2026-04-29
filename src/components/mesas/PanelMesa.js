@@ -24,26 +24,39 @@ export default function PanelMesa({ mesa, todasMesas, zonas, onCerrar, onElimina
   const [mostrarCambio, setMostrarCambio]     = useState(false);
   const [numPersonas, setNumPersonas]         = useState(mesa.personas ?? 2);
   const [confirmDelete, setConfirmDelete]     = useState(false);
+  const [loadingAccion, setLoadingAccion]     = useState(false);
 
   const lineas     = mesa.lineas ?? [];
   const estaOcupada = estado === 'ocupada' || estado === 'pagando';
   const zona       = zonas?.find(z => z.id === mesa.zonaId);
 
   async function ocupar() {
-    await updateMesa(mesa.id, { estado: 'ocupada', ocupadaEn: new Date().toISOString(), total: 0, personas: numPersonas });
-    bumpVersion();
+    setLoadingAccion(true);
+    try {
+      await updateMesa(mesa.id, { estado: 'ocupada', ocupadaEn: new Date().toISOString(), total: 0, personas: numPersonas });
+      bumpVersion();
+    } finally { setLoadingAccion(false); }
   }
   async function marcarPagando() {
-    await updateMesa(mesa.id, { estado: 'pagando' });
-    bumpVersion();
+    setLoadingAccion(true);
+    try {
+      await updateMesa(mesa.id, { estado: 'pagando' });
+      bumpVersion();
+    } finally { setLoadingAccion(false); }
   }
   async function liberar() {
-    await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
-    bumpVersion();
+    setLoadingAccion(true);
+    try {
+      await updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null, lineas: null });
+      bumpVersion();
+    } finally { setLoadingAccion(false); }
   }
   async function reservar() {
-    await updateMesa(mesa.id, { estado: 'reservada', ocupadaEn: new Date().toISOString(), total: null });
-    bumpVersion();
+    setLoadingAccion(true);
+    try {
+      await updateMesa(mesa.id, { estado: 'reservada', ocupadaEn: new Date().toISOString(), total: null });
+      bumpVersion();
+    } finally { setLoadingAccion(false); }
   }
 
   return (
@@ -207,12 +220,12 @@ export default function PanelMesa({ mesa, todasMesas, zonas, onCerrar, onElimina
 
           {estado === 'libre' && (
             <div className="space-y-2">
-              <button onClick={ocupar}
-                className="w-full py-3 rounded-mezo-lg text-sm font-semibold font-body transition"
+              <button onClick={ocupar} disabled={loadingAccion}
+                className="w-full py-3 rounded-mezo-lg text-sm font-semibold font-body transition disabled:opacity-50"
                 style={{ background: 'rgba(61,170,104,0.15)', color: '#3DAA68', border: '1px solid rgba(61,170,104,0.4)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(61,170,104,0.25)'; }}
+                onMouseEnter={e => { if (!loadingAccion) e.currentTarget.style.background = 'rgba(61,170,104,0.25)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(61,170,104,0.15)'; }}>
-                Ocupar mesa
+                {loadingAccion ? 'Guardando...' : 'Ocupar mesa'}
               </button>
               <div className="grid grid-cols-2 gap-2">
                 <PanelBtn onClick={reservar} color="#6B6055" label="Reservar" />

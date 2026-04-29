@@ -13,7 +13,8 @@ export default function POS() {
   const [searchParams]        = useSearchParams();
   const location              = useLocation();
   const mesaId                = searchParams.get('mesaId');
-  const [mesa, setMesa]       = useState(null);
+  const [mesa, setMesa]           = useState(null);
+  const [loadingMesa, setLoadingMesa] = useState(false);
 
   const { categorias } = useCategorias();
   const { productos }  = useProductos();
@@ -28,12 +29,15 @@ export default function POS() {
       carrito.cargarDesdeMesa(divLineas);
     }
     if (!mesaId) return;
-    getMesas().then(mesas => {
-      const m = mesas.find(ma => ma.id === mesaId);
-      if (!m) return;
-      setMesa(m);
-      if (!divLineas?.length && m.lineas?.length) carrito.cargarDesdeMesa(m.lineas);
-    });
+    setLoadingMesa(true);
+    getMesas()
+      .then(mesas => {
+        const m = mesas.find(ma => ma.id === mesaId);
+        if (!m) return;
+        setMesa(m);
+        if (!divLineas?.length && m.lineas?.length) carrito.cargarDesdeMesa(m.lineas);
+      })
+      .finally(() => setLoadingMesa(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mesaId]);
 
@@ -41,8 +45,17 @@ export default function POS() {
     <div className="h-screen bg-mezo-ink flex flex-col overflow-hidden">
       <Navbar />
 
+      {/* Spinner mientras carga la mesa seleccionada */}
+      {loadingMesa && (
+        <div className="flex items-center gap-2 px-6 py-2 border-b border-mezo-ink-line flex-shrink-0"
+          style={{ background: 'rgba(200,144,63,0.05)' }}>
+          <div className="w-3.5 h-3.5 border-2 border-mezo-gold border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          <p className="text-mezo-stone font-body text-xs">Cargando mesa…</p>
+        </div>
+      )}
+
       {/* Banner de mesa / división / pedido por mensaje */}
-      {(mesa || location.state?.personaNombre) && (
+      {!loadingMesa && (mesa || location.state?.personaNombre) && (
         <div className="flex items-center gap-3 px-6 py-2.5 border-b border-mezo-ink-line flex-shrink-0"
           style={{ background: 'rgba(200,144,63,0.07)' }}>
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#C8903F' }} />

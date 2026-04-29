@@ -56,6 +56,11 @@ export default function FormProducto({ producto = null, onClose }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!nombre.trim() || !precio) return;
+    // Advertir si el costo supera el precio de venta
+    if (Number(costo) > 0 && Number(costo) >= Number(precio)) {
+      setError('El costo ($' + Number(costo).toLocaleString('es-CO') + ') es mayor o igual al precio de venta. Revisa los valores.');
+      return;
+    }
     if (ingredInput.trim()) agregarIngrediente();
     setLoading(true); setError('');
     try {

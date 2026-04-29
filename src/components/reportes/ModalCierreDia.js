@@ -20,8 +20,8 @@ export default function ModalCierreDia({ kpis, onCerrar, onCancelar }) {
   async function handleCerrar() {
     setLoading(true);
     try {
-      // Liberar todas las mesas al cerrar el día
-      await Promise.all(
+      // Liberar todas las mesas; allSettled para no cortar si alguna falla
+      await Promise.allSettled(
         mesas.map(mesa => updateMesa(mesa.id, { estado: 'libre', ocupadaEn: null, total: null }))
       );
       bumpVersion();
