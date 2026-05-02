@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-email/render": "^2.0.8",
     "@react-pdf/renderer": "^4.5.1",
     "@sentry/react": "^10.49.0",
     "@testing-library/dom": "^10.4.1",
