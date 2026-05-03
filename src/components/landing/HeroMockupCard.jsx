@@ -485,7 +485,7 @@ export default function HeroMockupCard() {
 
     const run = async () => {
       while (mounted) {
-        await sleep(5000);
+        await sleep(7000);
         if (!mounted) return;
         setVistaIdx(prev => (prev + 1) % VISTAS.length);
       }
