@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import BorderBeam from '../effects/BorderBeam';
+// import BorderBeam from '../effects/BorderBeam'; // reemplazado por TopHighlight
+import TopHighlight from '../effects/TopHighlight';
 import AnimatedNumber from '../effects/AnimatedNumber';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
@@ -124,7 +125,7 @@ export default function HeroMockupCard() {
               padding: '1.5rem 1.75rem',
             }}
           >
-            <BorderBeam duration={6} />
+            <TopHighlight />
 
             {/* Header */}
             <div
