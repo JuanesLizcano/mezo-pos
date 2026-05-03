@@ -113,7 +113,7 @@ export default function Hero() {
                   letterSpacing: '0.12em',
                 }}
               >
-                🇨🇴 Hecho en Bogotá · Para Colombia
+                🇨🇴 Hecho en Colombia · Para Colombia
               </span>
             </div>
 
