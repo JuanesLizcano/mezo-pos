@@ -5,6 +5,7 @@ import Navbar from '../components/layout/Navbar';
 import TarjetaMesa from '../components/mesas/TarjetaMesa';
 import TarjetaCuenta from '../components/mesas/TarjetaCuenta';
 import PanelMesa from '../components/mesas/PanelMesa';
+import EmptyState from '../components/ui/EmptyState';
 import { useMesas } from '../hooks/useMesas';
 import { useZonas } from '../hooks/useZonas';
 import { useCuentas } from '../hooks/useCuentas';
@@ -206,10 +207,29 @@ export default function Mesas() {
             Cargando mesas…
           </div>
         ) : mesasFiltradas.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-mezo-stone font-body text-sm">
-            {zonaActiva === 'todas'
-              ? 'Aún no hay mesas — crea la primera con el botón "+ Nueva mesa".'
-              : 'Esta zona está vacía. Cambia de zona o crea una mesa nueva.'}
+          <div className="flex-1 flex items-center justify-center">
+            {zonaActiva !== 'todas' ? (
+              <p className="text-mezo-stone font-body text-sm">
+                Esta zona está vacía. Cambia de zona o crea una mesa nueva.
+              </p>
+            ) : (
+              <EmptyState
+                icon={
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="8" stroke="#C8903F" strokeWidth="1.5"/>
+                    <circle cx="12" cy="12" r="3" stroke="#C8903F" strokeWidth="1.5"/>
+                    <line x1="12" y1="4" x2="12" y2="9" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="12" y1="15" x2="12" y2="20" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="4" y1="12" x2="9" y2="12" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="15" y1="12" x2="20" y2="12" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                }
+                titulo="Configura tus mesas"
+                descripcion="Pueden ser barra, terraza, segundo piso, mostrador para llevar... como tú las tengas."
+                cta="Agregar primera mesa"
+                onCta={abrirModalNuevaMesa}
+              />
+            )}
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">

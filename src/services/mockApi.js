@@ -243,12 +243,12 @@ const DB = {
   ],
   negocios:     { 'neg-001': { ...NEGOCIO_DEMO } },
   categorias:   [...CATEGORIAS_INIT],
-  productos:    [...PRODUCTOS_INIT],
+  productos:    PRODUCTOS_INIT.map(p => ({ ...p, negocioId: 'neg-001' })),
   zonas:        [...ZONAS_INIT],
-  mesas:        MESAS_INIT.map(m => ({ ...m, zonaId: 'zona-1' })),
+  mesas:        MESAS_INIT.map(m => ({ ...m, negocioId: 'neg-001', zonaId: 'zona-1' })),
   cuentas:      [],
-  ordenes:      [...COCINA_DEMO, ...generarOrdenesDemo()],
-  empleados:    [...EMPLEADOS_INIT],
+  ordenes:      [...COCINA_DEMO, ...generarOrdenesDemo()].map(o => ({ ...o, negocioId: 'neg-001' })),
+  empleados:    EMPLEADOS_INIT.map(e => ({ ...e, negocioId: 'neg-001' })),
   movimientos:  [],
   turnos:       [],
   pendingOtps:  {},
@@ -288,6 +288,10 @@ function usuarioActual() {
     }
   } catch { /* token inválido o entorno sin localStorage */ }
   return null;
+}
+
+function negocioActual() {
+  return usuarioActual()?.negocioId ?? null;
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -395,7 +399,7 @@ export async function createNegocio(data) {
 
   if (data.tableCount > 0) {
     for (let i = 1; i <= data.tableCount; i++) {
-      DB.mesas.push({ id: nextId(), numero: i, nombre: `Mesa ${i}`, estado: 'libre', ocupadaEn: null, total: null });
+      DB.mesas.push({ id: nextId(), negocioId: id, numero: i, nombre: `Mesa ${i}`, estado: 'libre', ocupadaEn: null, total: null });
     }
   }
 
@@ -414,12 +418,15 @@ export async function updateNegocio(data) {
 
 export async function getProductos() {
   await delay();
-  return [...DB.productos].sort((a, b) => b.creadoEn - a.creadoEn);
+  const negId = negocioActual();
+  if (!negId) return [];
+  return [...DB.productos].filter(p => p.negocioId === negId).sort((a, b) => b.creadoEn - a.creadoEn);
 }
 
 export async function createProducto(data) {
   await delay();
-  const p = { id: nextId(), ...data, creadoEn: new Date() };
+  const user = usuarioActual();
+  const p = { id: nextId(), negocioId: user?.negocioId ?? null, ...data, creadoEn: new Date() };
   DB.productos.push(p);
   return p;
 }
@@ -472,7 +479,9 @@ export async function deleteCategoria(id) {
 
 export async function getMesas() {
   await delay();
-  return [...DB.mesas].sort((a, b) => a.numero - b.numero);
+  const negId = negocioActual();
+  if (!negId) return [];
+  return [...DB.mesas].filter(m => m.negocioId === negId).sort((a, b) => a.numero - b.numero);
 }
 
 export async function updateMesa(id, data) {
@@ -488,19 +497,23 @@ export async function updateMesa(id, data) {
 
 export async function createMesa(data) {
   await delay();
-  const siguienteNumero = DB.mesas.length
-    ? Math.max(...DB.mesas.map(m => m.numero)) + 1
+  const user = usuarioActual();
+  const negId = user?.negocioId ?? null;
+  const mesasPropias = negId ? DB.mesas.filter(m => m.negocioId === negId) : DB.mesas;
+  const siguienteNumero = mesasPropias.length
+    ? Math.max(...mesasPropias.map(m => m.numero)) + 1
     : 1;
   const numero = data.numero ?? siguienteNumero;
   const mesa = {
-    id:       nextId(),
+    id:        nextId(),
+    negocioId: negId,
     numero,
-    nombre:   data.nombre ?? `Mesa ${numero}`,
-    estado:   'libre',
+    nombre:    data.nombre ?? `Mesa ${numero}`,
+    estado:    'libre',
     ocupadaEn: null,
-    total:    null,
-    lineas:   null,
-    zonaId:   data.zonaId ?? 'zona-1',
+    total:     null,
+    lineas:    null,
+    zonaId:    data.zonaId ?? 'zona-1',
   };
   DB.mesas.push(mesa);
   return mesa;
@@ -597,7 +610,9 @@ export async function getCuenta(id) {
 
 export async function getOrdenes(params = {}) {
   await delay();
-  let result = [...DB.ordenes];
+  const negId = negocioActual();
+  if (!negId) return [];
+  let result = DB.ordenes.filter(o => o.negocioId === negId);
   if (params.desde) {
     const desde = new Date(params.desde);
     result = result.filter(o => new Date(o.createdAt) >= desde);
@@ -615,6 +630,7 @@ export async function createOrden(data) {
   const ahora = new Date();
   const orden = {
     id:            nextId(),
+    negocioId:     usuarioActual()?.negocioId ?? null,
     status:        'OPEN',
     estadoCocina:  'preparando',
     cocinaEn:      ahora,
@@ -687,12 +703,15 @@ export async function updateOrden(id, data) {
 
 export async function getEmpleados() {
   await delay();
-  return [...DB.empleados].sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const negId = negocioActual();
+  if (!negId) return [];
+  return [...DB.empleados].filter(e => e.negocioId === negId).sort((a, b) => a.nombre.localeCompare(b.nombre));
 }
 
 export async function createEmpleado(data) {
   await delay();
-  const emp = { id: nextId(), ...data, activo: true, creadoEn: new Date() };
+  const user = usuarioActual();
+  const emp = { id: nextId(), negocioId: user?.negocioId ?? null, ...data, activo: true, creadoEn: new Date() };
   DB.empleados.push(emp);
   return emp;
 }

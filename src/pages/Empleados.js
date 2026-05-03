@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEmpleados } from '../hooks/useEmpleados';
 import { normalizeText } from '../utils/formatters';
 import Navbar from '../components/layout/Navbar';
+import EmptyState from '../components/ui/EmptyState';
 import FormEmpleado from '../components/empleados/FormEmpleado';
 import TarjetaEmpleado from '../components/empleados/TarjetaEmpleado';
 
@@ -132,13 +133,18 @@ export default function Empleados() {
               </div>
             )}
             {empleados.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
-                <span style={{ fontSize: 40 }}>👥</span>
-                <p className="text-mezo-cream font-body font-medium">Todavía no hay equipo</p>
-                <p className="text-mezo-stone font-body text-sm">
-                  Agrega a tu gente, asígnales roles y cada uno verá solo lo que necesita.
-                </p>
-              </div>
+              <EmptyState
+                icon={
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" stroke="#C8903F" strokeWidth="1.5"/>
+                    <path d="M4 21c0-4 4-7 8-7s8 3 8 7" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                }
+                titulo="Tu equipo, tu gente"
+                descripcion="Agrega meseros, baristas, cajeros. Cada uno con su rol y permisos."
+                cta="Agregar primer empleado"
+                onCta={() => { setEditando(null); setModalAbierto(true); }}
+              />
             )}
           </div>
         )}

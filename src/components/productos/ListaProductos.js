@@ -3,6 +3,7 @@ import { Plus, Search, X } from 'lucide-react';
 import { useProductos } from '../../hooks/useProductos';
 import { useCategorias } from '../../hooks/useCategorias';
 import { normalizeText } from '../../utils/formatters';
+import EmptyState from '../ui/EmptyState';
 import TarjetaProducto from './TarjetaProducto';
 import FormProducto from './FormProducto';
 
@@ -111,21 +112,27 @@ function Chip({ activo, onClick, label }) {
 }
 
 function EstadoVacio({ onNuevo, hayProductos }) {
+  if (!hayProductos) {
+    return (
+      <EmptyState
+        icon={
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="6" width="18" height="14" rx="2" stroke="#C8903F" strokeWidth="1.5"/>
+            <path d="M7 10h10M7 14h6" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 6V5a3 3 0 0 1 6 0v1" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        }
+        titulo="Aún no tienes productos"
+        descripcion="Empieza por el tinto, el café que más vendes o cualquier producto. mezo arma el POS contigo."
+        cta="Crear primer producto"
+        onCta={onNuevo}
+      />
+    );
+  }
   return (
     <div className="text-center py-16">
       <p className="text-4xl mb-3">📦</p>
-      <p className="font-medium text-mezo-cream-dim font-body">
-        {hayProductos ? 'Nada en esta categoría aún' : 'El menú está vacío'}
-      </p>
-      {!hayProductos && (
-        <>
-          <p className="text-sm mt-1 mb-4 text-mezo-stone font-body">Agrega tu primer producto y empieza a vender</p>
-          <button onClick={onNuevo}
-            className="text-sm text-mezo-gold hover:text-mezo-gold-soft transition font-medium font-body">
-            + Agregar primer producto
-          </button>
-        </>
-      )}
+      <p className="font-medium text-mezo-cream-dim font-body">Nada en esta categoría aún</p>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Calculator, Plus, TrendingUp, TrendingDown, AlertTriangle, ChevronDown, ChevronRight, History, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Navbar from '../components/layout/Navbar';
+import EmptyState from '../components/ui/EmptyState';
 import { useOrdenes } from '../hooks/useOrdenes';
 import { useMovimientos } from '../hooks/useMovimientos';
 import { useEmployee } from '../context/EmployeeContext';
@@ -224,7 +225,7 @@ function HistoricoArqueos() {
 export default function Arqueo() {
   const { bumpVersion }            = useAuth();
   const { empleadoActivo }         = useEmployee();
-  const { cerrarDia }              = useDia();
+  const { abrirDia, cerrarDia }    = useDia();
 
   const hoy = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const { ordenes, loading: loadingOrdenes } = useOrdenes(hoy);
@@ -258,6 +259,11 @@ export default function Arqueo() {
   const totalSistema   = Object.values(sistema).reduce((s, v) => s + v, 0);
   const totalReal      = METODOS.reduce((s, m) => s + (parseFloat(conteoReal[m.id]) || 0), 0);
   const diferenciaTotalCOP = totalReal - totalSistema;
+
+  function handleEmpezarDia() {
+    abrirDia();
+    toast.success('¡Buen día! Turno abierto ✓');
+  }
 
   async function handleAgregarMovimiento(datos) {
     try {
@@ -328,6 +334,20 @@ export default function Arqueo() {
           <div className="flex items-center justify-center h-40">
             <div className="w-7 h-7 border-4 border-mezo-gold border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : !turnoActivo && ordenes.length === 0 ? (
+          <EmptyState
+            icon={
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="6" width="16" height="12" rx="2" stroke="#C8903F" strokeWidth="1.5"/>
+                <circle cx="12" cy="12" r="2" stroke="#C8903F" strokeWidth="1.5"/>
+                <path d="M8 6V5M16 6V5" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            }
+            titulo="Aún no has empezado el día"
+            descripcion="Cuando abras la caja y empieces a vender, aquí verás el arqueo en tiempo real."
+            cta="Empezar día"
+            onCta={handleEmpezarDia}
+          />
         ) : (
           <div className="space-y-6">
 

@@ -7,6 +7,7 @@ import { useDia } from '../context/DiaContext';
 import { usePlan } from '../hooks/usePlan';
 import { track } from '../services/analytics';
 import Navbar from '../components/layout/Navbar';
+import EmptyState from '../components/ui/EmptyState';
 import GraficaVentas from '../components/reportes/GraficaVentas';
 import KPIs, { calcularKPIs } from '../components/reportes/KPIs';
 import ModalCierreDia from '../components/reportes/ModalCierreDia';
@@ -188,6 +189,19 @@ export default function Reportes() {
               <div className="flex items-center justify-center h-40">
                 <div className="w-7 h-7 border-4 border-mezo-gold border-t-transparent rounded-full animate-spin" />
               </div>
+            ) : ordenes.length === 0 ? (
+              <EmptyState
+                icon={
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 18l4-4 4 4 8-8" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 6h4v4" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                }
+                titulo="Aún no hay ventas para reportar"
+                descripcion="Cuando empieces a vender, aquí verás tus reportes con análisis de IA."
+                cta="Ir al POS"
+                onCta={() => navigate('/pos')}
+              />
             ) : (
               <div className="space-y-6">
                 <KPIs kpis={kpis} />

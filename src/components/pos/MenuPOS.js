@@ -1,8 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { formatCOP, normalizeText } from '../../utils/formatters';
+import EmptyState from '../ui/EmptyState';
 
 export default function MenuPOS({ categorias, productos, onAgregar }) {
+  const navigate = useNavigate();
   const [catActiva, setCatActiva] = useState('todas');
   const [busqueda, setBusqueda]   = useState('');
   const [highlighted, setHighlighted] = useState(0);
@@ -138,9 +141,24 @@ export default function MenuPOS({ categorias, productos, onAgregar }) {
           )
         ) : (
           filtrados.length === 0 ? (
-            <div className="flex items-center justify-center h-40 text-mezo-stone font-body text-sm">
-              Esta categoría está vacía. Agrega productos desde el módulo Productos.
-            </div>
+            productos.filter(p => p.disponible).length === 0 ? (
+              <EmptyState
+                icon={
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="6" width="18" height="14" rx="2" stroke="#C8903F" strokeWidth="1.5"/>
+                    <path d="M7 10h10M7 14h6" stroke="#C8903F" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                }
+                titulo="Aún no tienes productos"
+                descripcion="Empieza por el tinto, el café que más vendes o cualquier producto. mezo arma el POS contigo."
+                cta="Crear primer producto"
+                onCta={() => navigate('/productos')}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-40 text-mezo-stone font-body text-sm">
+                Esta categoría está vacía. Agrega productos desde el módulo Productos.
+              </div>
+            )
           ) : (
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               {filtrados.map(producto => (
