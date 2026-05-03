@@ -1449,7 +1449,7 @@ function Footer() {
         { label: 'Términos de servicio',   href: '/terminos' },
         { label: 'Política de privacidad', href: '/privacidad' },
         { label: 'Centro de ayuda',        href: '/ayuda' },
-        { label: 'Estado del sistema',     href: '/status' },
+        { label: 'Estado del sistema',     href: '/estado' },
       ],
     },
   ];

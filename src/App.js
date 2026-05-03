@@ -22,6 +22,9 @@ import PantallaCocina from './pages/PantallaCocina';
 import Mensajes from './pages/Mensajes';
 import Terminos from './pages/Terminos';
 import Privacidad from './pages/Privacidad';
+import SobreMezo from './pages/SobreMezo';
+import CentroAyuda from './pages/CentroAyuda';
+import EstadoSistema from './pages/EstadoSistema';
 import NotFound from './pages/NotFound';
 import WhatsAppButton from './components/WhatsAppButton';
 
@@ -58,6 +61,9 @@ function App() {
             {/* Páginas legales */}
             <Route path="/terminos"   element={<Terminos />} />
             <Route path="/privacidad" element={<Privacidad />} />
+            <Route path="/sobre"      element={<SobreMezo />} />
+            <Route path="/ayuda"      element={<CentroAyuda />} />
+            <Route path="/estado"     element={<EstadoSistema />} />
 
             {/* Protegidas */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
