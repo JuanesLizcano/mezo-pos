@@ -4,6 +4,9 @@ import { useAuth } from './AuthContext';
 
 const EmployeeContext = createContext(null);
 
+// Roles del dueño/admin de la cuenta (vienen del JWT, no del empleado activo)
+const ROLES_OWNER = ['ADMIN', 'admin'];
+
 export function EmployeeProvider({ children }) {
   const { user }   = useAuth();
   const [empleadoActivo, setEmpleadoActivoState] = useState(null);
@@ -43,6 +46,8 @@ export function EmployeeProvider({ children }) {
   }
 
   const tieneRol = (rol) => {
+    // El dueño (role del JWT) siempre tiene acceso admin sin importar el empleado activo
+    if (user?.role && ROLES_OWNER.includes(user.role)) return true;
     if (!empleadoActivo) return false;
     const roles = empleadoActivo.rolesSeleccionados ?? empleadoActivo.roles ?? [];
     return roles.includes('admin') || roles.includes(rol);
