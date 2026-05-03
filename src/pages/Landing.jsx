@@ -130,7 +130,7 @@ const FAQS = [
   { q: '¿Necesito instalar algo?',            a: 'No. mezo funciona desde cualquier navegador en tablet, celular o computador. Sin descargas, sin instalaciones.' },
   { q: '¿Funciona sin internet?',             a: 'El POS necesita conexión para sincronizar en tiempo real. Recomendamos tener conexión estable o un plan de datos como respaldo.' },
   { q: '¿Puedo cancelar cuando quiera?',      a: 'Sí. Sin contratos, sin penalizaciones. Cancelas desde tu dashboard en cualquier momento.' },
-  { q: '¿Cómo funciona el período de prueba?',a: '30 días completamente gratis en el plan Pro. Sin tarjeta de crédito requerida. Al terminar eliges si continúas o no.' },
+  { q: '¿Cómo funciona el período de prueba?',a: '30 días completamente gratis en el plan Pro. Sin cobros hasta que decidas continuar. Al terminar eliges si continúas o no.' },
   { q: '¿Puedo tener varios empleados?',      a: 'Sí. En plan Semilla hasta 5 empleados; en Pro y Élite ilimitados, cada uno con su propio acceso y rol.' },
   { q: '¿Qué pasa con mis datos si cancelo?', a: 'Puedes exportar toda tu información antes de cancelar. Tus datos se eliminan de nuestros servidores 30 días después.' },
   { q: '¿Funciona para múltiples sedes?',     a: 'Plan Élite incluye sedes ilimitadas con reportes consolidados. Los planes Semilla y Pro son para una sola sede.' },
@@ -812,7 +812,7 @@ function Hero() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6">
-            {['Sin tarjeta de crédito', 'Configuración en 5 minutos', 'Soporte en español'].map(t => (
+            {['Cancela cuando quieras', 'Configuración en 5 minutos', 'Soporte en español'].map(t => (
               <span key={t} className="flex items-center gap-2 font-body text-sm" style={{ color: '#7A6A58' }}>
                 <span style={{ color: '#3DAA68', fontWeight: 700 }}>✓</span> {t}
               </span>
@@ -1527,7 +1527,7 @@ function CTAFinal() {
             Crear cuenta gratis →
           </Link>
           <p className="font-body text-sm mt-5" style={{ color: '#4A3F35' }}>
-            Sin tarjeta de crédito · Cancela cuando quieras · Soporte en español
+            Cancela cuando quieras · Listo en 5 minutos · Soporte en español
           </p>
         </Fade>
       </div>

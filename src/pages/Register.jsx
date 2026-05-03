@@ -38,7 +38,7 @@ function StepCuenta({ onSuccess }) {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <h2 className="text-mezo-cream font-body font-semibold text-lg mb-1">Crear cuenta</h2>
-        <p className="text-mezo-stone text-sm font-body">30 días gratis · Sin tarjeta · Cancela cuando quieras</p>
+        <p className="text-mezo-stone text-sm font-body">30 días gratis · Cancela cuando quieras</p>
       </div>
 
       <Campo label="Correo electrónico" type="email" placeholder="hola@minegocio.com"
