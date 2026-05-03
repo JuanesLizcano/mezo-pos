@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 // import BorderBeam from '../effects/BorderBeam'; // reemplazado por TopHighlight
-import TopHighlight from '../effects/TopHighlight';
+// import TopHighlight from '../effects/TopHighlight'; // reemplazado por PerimeterBeam
+import PerimeterBeam from '../effects/PerimeterBeam';
 import AnimatedNumber from '../effects/AnimatedNumber';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 
@@ -125,7 +126,7 @@ export default function HeroMockupCard() {
               padding: '1.5rem 1.75rem',
             }}
           >
-            <TopHighlight />
+            <PerimeterBeam duration={5} borderRadius="16px" />
 
             {/* Header */}
             <div
