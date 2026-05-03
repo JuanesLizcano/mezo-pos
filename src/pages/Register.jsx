@@ -92,8 +92,9 @@ function StepCuenta({ onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     const newErrors = {};
-    if (pass.length < 6)      newErrors.pass    = 'Mínimo 6 caracteres.';
-    if (pass !== confirm)     newErrors.confirm = 'Las contraseñas no coinciden.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email   = 'Email inválido.';
+    if (pass.length < 6)                            newErrors.pass    = 'Mínimo 6 caracteres.';
+    if (pass !== confirm)                           newErrors.confirm = 'Las contraseñas no coinciden.';
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
     setErrors({});
     setLoading(true);

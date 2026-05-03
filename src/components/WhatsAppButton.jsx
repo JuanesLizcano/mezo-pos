@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 // Rutas donde el botón no debe aparecer (pantallas de operación)
 const HIDDEN_PATHS = ['/pos', '/cocina'];
 
-const WA_NUMBER = '573001234567'; // TODO: reemplazar con número real de ventas
+const WA_NUMBER = '573001234567'; // PENDIENTE: reemplazar con número real de ventas mezo
 const WA_MESSAGE = encodeURIComponent('Hola, quiero saber más sobre mezo para mi negocio 👋');
 
 export default function WhatsAppButton() {

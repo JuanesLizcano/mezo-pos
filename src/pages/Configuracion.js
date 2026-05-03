@@ -373,7 +373,6 @@ function TabImpresora() {
         email:           emailFactura     || negocio?.email,
         pieFactura,
       };
-      console.log('[mezo] Imprimiendo ticket de prueba', negocioPrueba);
       const blob = await pdf(<TicketPDF orden={ordenPrueba} negocio={negocioPrueba} />).toBlob();
       window.open(URL.createObjectURL(blob), '_blank');
     } catch {
