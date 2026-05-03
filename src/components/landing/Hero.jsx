@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import AuroraGlow from '../effects/AuroraGlow';
 import Typewriter from '../effects/Typewriter';
+import ArrowIcon from '../icons/ArrowIcon';
 import MagneticButton from '../effects/MagneticButton';
 import HeroMockupCard from './HeroMockupCard';
 
@@ -163,17 +164,16 @@ export default function Hero() {
                   as={Link}
                   to="/register"
                   strength={0.25}
-                  className="mezo-cta-shimmer font-body font-semibold px-8 py-4 rounded-xl text-base"
+                  className="group mezo-cta-shimmer font-body font-semibold px-8 py-4 rounded-xl text-base inline-flex items-center gap-2"
                   style={{
                     background: '#C8903F',
                     color: '#080706',
                     boxShadow: '0 0 36px rgba(200,144,63,0.35)',
-                    display: 'block',
-                    textAlign: 'center',
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  Probar gratis →
+                  Probar gratis
+                  <ArrowIcon />
                 </MagneticButton>
                 <a
                   href="#como-funciona"

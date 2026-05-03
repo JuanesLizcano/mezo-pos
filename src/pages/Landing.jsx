@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, X, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ArrowIcon from '../components/icons/ArrowIcon';
 import { useAuth } from '../context/AuthContext';
 import AuroraGlow from '../components/effects/AuroraGlow';
 import CafeCup from '../components/brand/CafeCup';
@@ -98,7 +99,7 @@ function useTextRotator(texts, interval = 3000) {
 
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
-const CTA_TEXTS = ['Prueba gratis →', 'Empieza hoy →', 'Regístrate →', 'Comienza gratis →'];
+const CTA_TEXTS = ['Prueba gratis', 'Empieza hoy', 'Regístrate', 'Comienza gratis'];
 
 
 const FEATURES_GRID = [
@@ -665,13 +666,14 @@ function Navbar({ scrolled }) {
           Iniciar sesión
         </Link>
         <Link to="/register"
-          className="text-sm font-body font-semibold px-5 py-2 rounded-lg transition"
-          style={{ background: '#C8903F', color: '#080706', minWidth: 148, textAlign: 'center', display: 'block' }}
+          className="group text-sm font-body font-semibold px-5 py-2.5 rounded-lg transition inline-flex items-center gap-1.5"
+          style={{ background: '#C8903F', color: '#080706' }}
           onMouseEnter={e => { e.currentTarget.style.background = '#A87528'; }}
           onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
-          <span style={{ display: 'inline-block', opacity: ctaVisible ? 1 : 0, transition: 'opacity 0.3s ease', pointerEvents: 'none' }}>
+          <span style={{ opacity: ctaVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}>
             {ctaText}
           </span>
+          <ArrowIcon />
         </Link>
       </div>
     </nav>
@@ -1211,13 +1213,14 @@ function Precios() {
               </button>
             ) : (
               <Link to="/register"
-                className="block text-center font-body font-semibold py-3 rounded-xl text-sm transition relative z-10"
+                className="group flex items-center justify-center gap-2 font-body font-semibold py-3 rounded-xl text-sm transition relative z-10"
                 style={plan.ctaStyle === 'gold'
                   ? { background: '#C8903F', color: '#080706' }
                   : { border: '1px solid rgba(200,144,63,0.4)', color: '#E4B878', background: 'transparent' }}
                 onMouseEnter={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#A87528' : 'rgba(200,144,63,0.1)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = plan.ctaStyle === 'gold' ? '#C8903F' : 'transparent'; }}>
                 {plan.cta}
+                <ArrowIcon />
               </Link>
             );
 
