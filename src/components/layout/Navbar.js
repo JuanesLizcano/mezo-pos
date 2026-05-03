@@ -1,4 +1,4 @@
-import { useNavigate, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { LogOut, Home, ShoppingBag, Receipt, LayoutGrid, BarChart2, Users, Settings, Calculator, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployee } from '../../context/EmployeeContext';
@@ -19,13 +19,6 @@ const NAV_ITEMS_BASE = [
 export default function Navbar() {
   const { user, negocio, logout } = useAuth();
   const { tieneRol }              = useEmployee();
-  const navigate = useNavigate();
-
-  function handleLogout() {
-    // Navegar primero — si logout va antes, ProtectedRoute detecta !user y redirige a /login
-    navigate('/', { replace: true });
-    logout();
-  }
 
   // Filtrar ítems según rol del empleado activo
   const navItems = NAV_ITEMS_BASE.filter(item => {
@@ -71,7 +64,7 @@ export default function Navbar() {
         <div className="hidden md:block w-px h-5 bg-mezo-ink-line" />
 
         <button
-          onClick={handleLogout}
+          onClick={logout}
           className="flex items-center gap-2 text-base text-mezo-stone hover:text-mezo-rojo transition"
         >
           <LogOut size={16} />

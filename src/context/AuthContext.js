@@ -36,6 +36,8 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(REFRESH_KEY);
     setUser(null);
     setNegocio(null);
+    // Diferir para no navegar durante fase de render (inactividad timer puede llamar esto desde render)
+    setTimeout(() => { window.location.href = '/'; }, 0);
   }, []);
 
   const bumpVersion = useCallback(() => setDataVersion(v => v + 1), []);

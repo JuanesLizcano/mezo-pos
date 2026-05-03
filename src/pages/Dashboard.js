@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDia } from '../context/DiaContext';
@@ -38,6 +38,19 @@ export default function Dashboard() {
   const saludo   = useMemo(getSaludo, []);
   const fecha    = useMemo(getFechaEspanol, []);
 
+  const [mostrarBienvenida, setMostrarBienvenida] = useState(
+    () => !localStorage.getItem('mezo_seen_welcome')
+  );
+
+  useEffect(() => {
+    if (!mostrarBienvenida) return;
+    const t = setTimeout(() => {
+      localStorage.setItem('mezo_seen_welcome', '1');
+      setMostrarBienvenida(false);
+    }, 2800);
+    return () => clearTimeout(t);
+  }, [mostrarBienvenida]);
+
   const hoy = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const { ordenes } = useOrdenes(hoy);
 
@@ -47,6 +60,33 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ position: 'relative' }}>
+      {/* Splash primer acceso */}
+      {mostrarBienvenida && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: 'rgba(8,7,6,0.93)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeOut 0.6s ease 2.2s forwards',
+        }}>
+          <div style={{ textAlign: 'center', userSelect: 'none' }}>
+            <div style={{ fontSize: 56, marginBottom: 20 }}>👋</div>
+            <h2 style={{
+              fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic',
+              fontSize: 'clamp(2rem, 5vw, 3rem)', color: '#F4ECD8',
+              fontWeight: 500, margin: 0, marginBottom: 10,
+            }}>
+              Bienvenido a mezo
+            </h2>
+            {negocio && (
+              <p style={{ fontSize: 18, color: '#C8903F', fontFamily: '"DM Sans", sans-serif', margin: 0 }}>
+                {negocio.name}
+              </p>
+            )}
+          </div>
+          <style>{`@keyframes fadeOut { to { opacity: 0; pointer-events: none; } }`}</style>
+        </div>
+      )}
       {/* Background image + overlay */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 0,
