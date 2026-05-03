@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import AuroraGlow from '../effects/AuroraGlow';
+import GoldenSparkles from '../effects/GoldenSparkles';
 import Typewriter from '../effects/Typewriter';
 import ArrowIcon from '../icons/ArrowIcon';
 import MagneticButton from '../effects/MagneticButton';
@@ -81,6 +82,7 @@ export default function Hero() {
       />
 
       <AuroraGlow variant="top" intensity={0.18} />
+      <GoldenSparkles count={12} />
 
       {/* Partículas doradas */}
       {PARTICLES.map((p, i) => (
@@ -136,9 +138,9 @@ export default function Hero() {
                 className="text-[#C8903F]"
                 style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic' }}
                 cursorColor="#C8903F"
-                speed={90}
-                deleteSpeed={50}
-                waitTime={1600}
+                typingSpeed={90}
+                deletingSpeed={50}
+                pauseAfterTyping={1600}
               />
               <span style={{ fontStyle: 'italic', color: '#C8903F' }}>.</span>
             </h1>
