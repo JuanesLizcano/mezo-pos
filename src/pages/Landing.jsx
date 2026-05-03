@@ -135,21 +135,21 @@ const PLANES = {
       { ok: true,  text: 'Todos los métodos de pago' },
       { ok: true,  text: 'Reporte de ventas del día' },
       { ok: false, text: 'Historial y reportes avanzados' },
-      { ok: false, text: 'Funciones IA' },
+      { ok: false, text: 'Funciones de IA' },
     ],
     cta: 'Empezar gratis', ctaStyle: 'outline',
   },
   pro: {
     nombre: 'Pro', badge: '⭐ Más popular', precio: { mensual: 99900, anual: 79900 },
     items: [
-      { ok: true,  text: 'Mesas ilimitadas' },
-      { ok: true,  text: 'Productos ilimitados' },
-      { ok: true,  text: 'Empleados ilimitados' },
-      { ok: true,  text: '1 sede · 30 días gratis' },
-      { ok: true,  text: 'Todos los métodos de pago' },
-      { ok: true,  text: 'Reportes completos (semana, mes, año)' },
-      { ok: true,  text: 'Exportar datos' },
-      { ok: false, text: 'Funciones IA' },
+      { ok: true, text: 'Mesas ilimitadas' },
+      { ok: true, text: 'Productos ilimitados' },
+      { ok: true, text: 'Empleados ilimitados' },
+      { ok: true, text: '1 sede · 30 días gratis' },
+      { ok: true, text: 'Todos los métodos de pago' },
+      { ok: true, text: 'Reportes completos (semana, mes, año)' },
+      { ok: true, text: 'Exportar datos' },
+      { ok: true, tipo: 'ia', text: 'IA básica', subtexto: 'Sugerencias de menú y resumen del día' },
     ],
     cta: 'Comenzar ahora', ctaStyle: 'gold',
   },
@@ -158,8 +158,7 @@ const PLANES = {
     items: [
       { ok: true, text: 'Todo lo de Pro' },
       { ok: true, text: 'Sedes ilimitadas' },
-      { ok: true, text: 'Análisis de ventas con IA' },
-      { ok: true, text: 'Predicción de demanda' },
+      { ok: true, tipo: 'ia', text: 'IA avanzada', subtexto: 'Análisis predictivo, alertas inteligentes, recomendaciones personalizadas' },
       { ok: true, text: 'Chatbot de WhatsApp' },
       { ok: true, text: 'Soporte prioritario 24/7' },
       { ok: true, text: 'API de integración' },
@@ -173,6 +172,15 @@ const PLANES = {
 function formatCOP(n) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 }
+
+// ─── Ícono sparkles para features de IA en pricing ───────────────────────────
+const PricingSparkles = () => (
+  <svg width="16" height="16" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden>
+    <path d="M7 1L8.2 4.8L12 6L8.2 7.2L7 11L5.8 7.2L2 6L5.8 4.8L7 1Z" fill="#E4B878"/>
+    <circle cx="11.5" cy="2.5" r="0.8" fill="#E4B878"/>
+    <circle cx="2.5" cy="11.5" r="0.6" fill="#E4B878"/>
+  </svg>
+);
 
 // ─── SVGs redes sociales ──────────────────────────────────────────────────────
 const SVG_INSTAGRAM = (
@@ -1229,10 +1237,17 @@ function Precios() {
                 <ul className="space-y-3 flex-1 mb-8">
                   {plan.items.map((it, j) => (
                     <li key={j} className="flex items-start gap-2.5 font-body text-sm" style={{ color: it.ok ? '#D9CEB5' : '#4A3F35' }}>
-                      {it.ok
-                        ? <Check size={14} style={{ color: '#3DAA68', flexShrink: 0, marginTop: 2 }} />
-                        : <X     size={14} style={{ color: '#4A3F35', flexShrink: 0, marginTop: 2 }} />}
-                      {it.text}
+                      {it.tipo === 'ia'
+                        ? <PricingSparkles />
+                        : it.ok
+                          ? <Check size={14} style={{ color: '#3DAA68', flexShrink: 0, marginTop: 2 }} />
+                          : <X     size={14} style={{ color: '#4A3F35', flexShrink: 0, marginTop: 2 }} />}
+                      <div>
+                        <span>{it.text}</span>
+                        {it.subtexto && (
+                          <span className="block text-xs mt-0.5" style={{ color: '#7A6A58' }}>{it.subtexto}</span>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
