@@ -136,9 +136,9 @@ export default function Hero() {
                 className="text-[#C8903F]"
                 style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic' }}
                 cursorColor="#C8903F"
-                typingSpeed={90}
-                deletingSpeed={50}
-                pauseAfterTyping={1600}
+                speed={90}
+                deleteSpeed={50}
+                waitTime={1600}
               />
               <span style={{ fontStyle: 'italic', color: '#C8903F' }}>.</span>
             </h1>
