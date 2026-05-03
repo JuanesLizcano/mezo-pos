@@ -72,6 +72,13 @@ export function AuthProvider({ children }) {
       }
       // Reconstruir el user desde el payload del accessToken (campos del backend)
       const payload = parseJwtPayload(token);
+
+      // Si el JWT incluye businessId, refrescar localStorage para que getNegocio() funcione
+      // en refreshes y nuevos dispositivos sin depender de que el login lo haya guardado
+      // TODO: confirmar con Manuel que el JWT incluye businessId o business_id
+      const bizId = payload.businessId ?? payload.business_id ?? payload.bid;
+      if (bizId) localStorage.setItem('mezo_business_id', bizId);
+
       setUser({
         id:            payload.sub ?? payload.uid,
         email:         payload.email,

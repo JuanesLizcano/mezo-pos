@@ -236,7 +236,9 @@ function fromEmpleado(m) {
 
 export async function login(email, password) {
   const data  = await request('POST', '/api/v1/auth/login', { email, password });
-  const bizId = data.user?.businesses?.[0]?.id;
+  // Intentar extraer businessId de cualquier variante que devuelva el backend
+  // TODO: confirmar con Manuel el campo exacto del response
+  const bizId = data.user?.businesses?.[0]?.id ?? data.user?.businessId ?? data.businessId;
   if (bizId) localStorage.setItem(BUSINESS_KEY, bizId);
   return {
     accessToken:  data.accessToken,
@@ -257,7 +259,7 @@ export async function register(email, password) {
 
 export async function verifyOtp(email, code) {
   const data  = await request('POST', '/api/v1/auth/verify-otp', { email, code });
-  const bizId = data.user?.businesses?.[0]?.id;
+  const bizId = data.user?.businesses?.[0]?.id ?? data.user?.businessId ?? data.businessId;
   if (bizId) localStorage.setItem(BUSINESS_KEY, bizId);
   if (!data.accessToken) return data;
   return {
@@ -281,7 +283,17 @@ export async function resendOtp(email) {
 
 export async function getNegocio() {
   const bizId = getBusinessId();
-  if (!bizId) return null;
+
+  // Sin ID en localStorage → intentar endpoint sin ID (recupera el negocio del usuario autenticado)
+  // TODO: confirmar con Manuel si existe GET /api/v1/businesses/me; si no, agregar ese endpoint
+  if (!bizId) {
+    try {
+      const biz = await request('GET', '/api/v1/businesses/me');
+      if (biz?.id) localStorage.setItem(BUSINESS_KEY, biz.id);
+      return fromNegocio(biz);
+    } catch { return null; }
+  }
+
   try {
     return fromNegocio(await request('GET', `/api/v1/businesses/${bizId}`));
   } catch { return null; }
