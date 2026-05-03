@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import AuroraGlow from '../components/effects/AuroraGlow';
 import RotatingWord from '../components/effects/RotatingWord';
+import CafeCup from '../components/brand/CafeCup';
 
 // ─── Keyframes globales ───────────────────────────────────────────────────────
 const GLOBAL_STYLES = `
@@ -1098,6 +1099,43 @@ function Beneficios() {
   );
 }
 
+// ─── Por qué mezo — declaración de intenciones ───────────────────────────────
+function PorQueSection() {
+  return (
+    <section style={{
+      background: '#080706', padding: '72px 24px',
+      borderTop: '1px solid rgba(200,144,63,0.07)',
+      borderBottom: '1px solid rgba(200,144,63,0.07)',
+    }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+        <CafeCup size={40} color="#C8903F" opacity={0.7} />
+        <p style={{
+          fontSize: 10, fontFamily: '"DM Sans", sans-serif',
+          color: '#4A3F35', textTransform: 'uppercase',
+          letterSpacing: '0.14em', margin: '18px 0 22px',
+        }}>
+          Por qué mezo
+        </p>
+        <p style={{
+          fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic',
+          fontSize: 'clamp(1.1rem, 2.6vw, 1.45rem)',
+          color: '#D9CEB5', lineHeight: 1.8, fontWeight: 400,
+        }}>
+          "La mayoría de los POS los diseñaron personas que nunca cerraron una caja
+          un sábado a las 11 de la noche. Nosotros sí. Por eso mezo hace en 3 clics
+          lo que otros sistemas hacen en 12."
+        </p>
+        <p style={{
+          fontFamily: '"DM Sans", sans-serif', fontSize: 13,
+          color: '#4A3F35', marginTop: 22,
+        }}>
+          — El equipo de mezo · Bogotá, Colombia
+        </p>
+      </div>
+    </section>
+  );
+}
+
 // ─── Sección IA ───────────────────────────────────────────────────────────────
 function SeccionIA() {
   const cards = [
@@ -1147,12 +1185,12 @@ function SeccionIA() {
           <div className="max-w-xl mx-auto p-6 rounded-2xl border text-center"
             style={{ background: 'rgba(20,18,16,0.6)', borderColor: 'rgba(200,144,63,0.18)' }}>
             <div className="w-11 h-11 rounded-full mx-auto mb-4 flex items-center justify-center font-bold text-sm"
-              style={{ background: 'linear-gradient(135deg, #C8903F, #E4B878)', color: '#080706' }}>CR</div>
+              style={{ background: 'linear-gradient(135deg, #C8903F, #E4B878)', color: '#080706' }}>TO</div>
             <p className="font-body italic mb-4" style={{ color: '#D9CEB5', fontSize: 15, lineHeight: 1.7 }}>
-              "mezo me dijo que mi producto más rentable no era el que más vendía. Cambié el menú y subí 23% en un mes."
+              "Antes cerrábamos la caja y nunca cuadraba. Con mezo cerramos en 3 minutos: sabemos exactamente qué se vendió, cuánto entró en efectivo y dónde hubo diferencia."
             </p>
-            <p className="font-body text-sm font-semibold" style={{ color: '#E4B878' }}>Carolina Ríos</p>
-            <p className="font-body text-xs mt-0.5" style={{ color: '#7A6A58' }}>Café del Parque · Bogotá</p>
+            <p className="font-body text-sm font-semibold" style={{ color: '#E4B878' }}>Tres Orquídeas</p>
+            <p className="font-body text-xs mt-0.5" style={{ color: '#7A6A58' }}>Restaurante · Chía, Cundinamarca</p>
           </div>
         </Fade>
       </div>
@@ -1721,6 +1759,15 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
+    console.log(
+      '%c mezo %c — hecho con ☕ en Colombia 🇨🇴\n%c¿Construyes algo interesante? hola@mezo.co',
+      'background:#C8903F;color:#080706;font-weight:700;padding:3px 10px;border-radius:4px;font-size:13px',
+      'color:#C8903F;font-weight:600;font-size:13px',
+      'color:#7A6A58;font-size:12px',
+    );
+  }, []);
+
+  useEffect(() => {
     if (!loading && user) navigate(negocio ? '/dashboard' : '/onboarding', { replace: true });
   }, [loading, user, negocio, navigate]);
 
@@ -1742,6 +1789,7 @@ export default function Landing() {
         <SliderMockups />
         <TiposNegocio />
         <Beneficios />
+        <PorQueSection />
         <SeccionIA />
         <Features />
         <Precios />
