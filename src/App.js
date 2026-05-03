@@ -23,6 +23,7 @@ import Mensajes from './pages/Mensajes';
 import Terminos from './pages/Terminos';
 import Privacidad from './pages/Privacidad';
 import NotFound from './pages/NotFound';
+import WhatsAppButton from './components/WhatsAppButton';
 
 // Redirige / al dashboard si está logueado, o a la Landing si no
 function RootRedirect() {
@@ -74,6 +75,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
 
+          <WhatsAppButton />
           <Toaster
             position="top-right"
             toastOptions={{
