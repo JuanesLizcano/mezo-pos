@@ -69,7 +69,7 @@ export default function Terminos() {
           <h3 style={S.h3}>3.1 Planes disponibles</h3>
           <p style={S.p}>mezo ofrece los planes Semilla, Pro y Élite con diferentes funcionalidades y precios. Los precios vigentes se muestran en la página de precios y pueden cambiar con un aviso previo de 30 días.</p>
           <h3 style={S.h3}>3.2 Período de prueba</h3>
-          <p style={S.p}>Todos los planes incluyen 30 días de prueba gratuita. Durante este período no se requiere tarjeta de crédito. Al finalizar, el plan se activa solo si el usuario lo confirma con un método de pago válido.</p>
+          <p style={S.p}>Todos los planes incluyen 30 días de prueba gratuita. Durante este período no se generan cobros. Al finalizar, el plan se activa solo si el usuario lo confirma con un método de pago válido.</p>
           <h3 style={S.h3}>3.3 Facturación</h3>
           <p style={S.p}>Los pagos se procesan a través de Wompi, la pasarela de pagos de Bancolombia. Al suscribirte, autorizas el cobro recurrente del monto correspondiente al plan seleccionado, ya sea mensual o anual.</p>
           <h3 style={S.h3}>3.4 Cancelación y reembolsos</h3>
