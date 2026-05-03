@@ -187,12 +187,8 @@ export default function Hero() {
                 </a>
               </div>
 
-              {/* Precio + trust badges */}
+              {/* Trust badges */}
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3 text-sm">
-                <span style={{ color: '#7A6A58' }}>
-                  Desde{' '}
-                  <span className="font-medium tabular-nums" style={{ color: '#F4ECD8' }}>$39.900</span>/mes
-                </span>
                 <span className="flex items-center gap-1.5" style={{ color: '#9A8A78' }}>
                   <CheckIcon />30 días gratis
                 </span>
