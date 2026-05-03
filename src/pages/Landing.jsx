@@ -1231,7 +1231,9 @@ function Precios() {
                   {formatCOP(anual ? plan.precio.anual : plan.precio.mensual)}
                 </div>
                 <p className="font-body text-xs mb-1" style={{ color: '#7A6A58' }}>
-                  /mes{anual ? ' · facturado anualmente' : ''}
+                  {anual
+                    ? <>/mes · pagas 12 meses · <span style={{ color: '#3DAA68' }}>ahorras 20%</span></>
+                    : '/mes'}
                 </p>
                 <p className="font-body text-xs mb-6" style={{ color: '#3DAA68' }}>30 días gratis incluidos</p>
                 <ul className="space-y-3 flex-1 mb-8">
