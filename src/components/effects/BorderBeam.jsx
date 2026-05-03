@@ -1,47 +1,52 @@
-import { useId } from 'react';
+import { useEffect, useRef } from 'react';
 
 /**
- * BorderBeam — punto de luz dorado que recorre el perímetro del card.
- * Técnica: div cuadrado 200% que gira sobre su centro; conic-gradient
- * solo visible en ~40° de arco; el overflow:hidden del padre lo recorta
- * al borde, creando la ilusión de un punto de luz recorriendo el perímetro.
+ * BorderBeam — punto de luz dorado que recorre el borde del card.
+ * Técnica: rAF actualiza el ángulo del conic-gradient cada frame.
+ * El mask content-box/xor limita la visibilidad al strip del borde.
+ * Compatible con todos los navegadores modernos sin @property.
  *
- * REQUIERE que el padre tenga: position:relative + overflow:hidden
+ * REQUIERE que el padre tenga: position:relative
  */
 export default function BorderBeam({
   duration = 6,
   colorFrom = '#C8903F',
   colorTo = '#E4B878',
+  borderWidth = 1.5,
 }) {
-  const id = useId().replace(/:/g, '');
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const durationMs = duration * 1000;
+    const start = performance.now();
+    let raf;
+
+    const update = (now) => {
+      const angle = ((now - start) / durationMs * 360) % 360;
+      el.style.background = `conic-gradient(from ${angle.toFixed(1)}deg, transparent 0deg 310deg, ${colorFrom} 335deg, ${colorTo} 348deg, ${colorFrom} 360deg)`;
+      raf = requestAnimationFrame(update);
+    };
+
+    raf = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(raf);
+  }, [duration, colorFrom, colorTo]);
 
   return (
     <div
+      ref={ref}
       aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
-    >
-      <div
-        className={`mezo-beam-${id}`}
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: '200%',
-          aspectRatio: '1',
-          background: `conic-gradient(from 0deg, transparent 0deg 320deg, ${colorFrom} 340deg, ${colorTo} 350deg, ${colorFrom} 360deg)`,
-          transform: 'translate(-50%, -50%) rotate(0deg)',
-          animation: `mezo-spin-${id} ${duration}s linear infinite`,
-        }}
-      />
-      <style>{`
-        @keyframes mezo-spin-${id} {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to   { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .mezo-beam-${id} { animation: none !important; }
-        }
-      `}</style>
-    </div>
+      className="pointer-events-none absolute inset-0 rounded-[inherit]"
+      style={{
+        padding: `${borderWidth}px`,
+        background: `conic-gradient(from 0deg, transparent 0deg 310deg, ${colorFrom} 335deg, ${colorTo} 348deg, ${colorFrom} 360deg)`,
+        WebkitMask: 'linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)',
+        WebkitMaskComposite: 'xor',
+        maskComposite: 'exclude',
+      }}
+    />
   );
 }
