@@ -36,7 +36,7 @@ export default function AnimatedNumber({
         requestAnimationFrame(step);
         obs.disconnect();
       },
-      { threshold: 0.5 }
+      { threshold: 0 }
     );
 
     if (ref.current) obs.observe(ref.current);

@@ -223,7 +223,9 @@ export default function HeroMockupCard() {
           <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden>
             <path d="M5 1L8 5H2L5 1Z" fill="#3DAA68" />
           </svg>
-          <span className="text-xs tabular-nums" style={{ color: '#3DAA68' }}>+18%</span>
+          <span className="text-xs tabular-nums" style={{ color: '#3DAA68' }}>
+            +<AnimatedNumber value={18} duration={1000} formatter={(n) => `${Math.round(n)}%`} />
+          </span>
         </div>
       </motion.div>
     </motion.div>
