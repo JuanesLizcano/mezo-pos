@@ -144,7 +144,7 @@ const FEATURES_GRID = [
 const FAQS = [
   { q: '¿Necesito instalar algo?',                   a: 'Nada. mezo corre desde el navegador del celular, la tablet o el computador que ya tienes. Sin descargas, sin configuraciones raras.' },
   { q: '¿Y si se va el internet en pleno servicio?', a: 'Recomendamos tener un plan de datos como respaldo — un $18.000/mes de datos en el celular te salva el turno. Para la sincronización en tiempo real sí se necesita conexión.' },
-  { q: '¿Cuánto vale y cuándo me cobran?',           a: '30 días completamente gratis, sin tarjeta. Al día 31 te avisamos y decides si continúas. Si cancelas antes, no se cobra nada, prometido.' },
+  { q: '¿Cuánto vale y cuándo me cobran?',           a: '30 días completamente gratis. Al día 31 te avisamos y decides si continúas. Si cancelas antes, no se cobra nada, prometido.' },
   { q: '¿Puedo cancelar cuando quiera?',             a: 'Sí, sin contratos, sin llamadas al servicio al cliente, sin letras pequeñas. Cancelas en dos clics desde tu dashboard.' },
   { q: '¿Puedo tener varios empleados?',             a: 'Sí. En Semilla hasta 5 empleados; en Pro y Élite son ilimitados. Cada uno con su propio acceso y su rol: admin, cajero, mesero o cocina.' },
   { q: '¿Funciona para Nequi y Daviplata?',          a: 'Sí. Efectivo con cambio automático, datáfono, Nequi, Daviplata y transferencia bancaria. Todo registrado, todo en el reporte.' },
@@ -569,7 +569,7 @@ function SliderMockups() {
   }, [slide, paused, goTo]);
 
   return (
-    <section id="mockup" className="py-24 px-4" style={{ background: 'linear-gradient(180deg, #080706 0%, #0D0B09 100%)' }}>
+    <section id="como-funciona" className="py-24 px-4" style={{ background: 'linear-gradient(180deg, #080706 0%, #0D0B09 100%)' }}>
       <div className="max-w-5xl mx-auto">
         <Fade>
           <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>Interfaz del sistema</p>

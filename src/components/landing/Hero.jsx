@@ -13,7 +13,26 @@ const PARTICLES = [
   { left: '82%', top: '20%', size: 4, dur: 2.6, delay: 0.4 },
 ];
 
-const WORDS = ['tinto', 'turno', 'cliente', 'menú', 'mostrador'];
+const WORDS = ['turno', 'cliente', 'menú', 'inventario', 'negocio'];
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+    <path d="M3 7L6 10L11 4" stroke="#3DAA68" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const SparklesIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+    <path d="M7 1L8.2 4.8L12 6L8.2 7.2L7 11L5.8 7.2L2 6L5.8 4.8L7 1Z" fill="#E4B878"/>
+    <circle cx="11.5" cy="2.5" r="0.8" fill="#E4B878"/>
+    <circle cx="2.5" cy="11.5" r="0.6" fill="#E4B878"/>
+  </svg>
+);
+
+function scrollToComoFunciona(e) {
+  e.preventDefault();
+  document.querySelector('#como-funciona')?.scrollIntoView({ behavior: 'smooth' });
+}
 
 export default function Hero() {
   const [mounted, setMounted] = useState(false);
@@ -82,6 +101,7 @@ export default function Hero() {
 
           {/* Columna izquierda */}
           <div>
+            {/* Badge */}
             <div style={fadeUp(0)}>
               <span
                 className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6"
@@ -96,39 +116,57 @@ export default function Hero() {
               </span>
             </div>
 
-            <h1 style={{
-              fontFamily: '"Fraunces", Georgia, serif',
-              fontSize: 'clamp(2.6rem, 5.5vw, 4.5rem)',
-              color: '#F4ECD8',
-              lineHeight: 1.08,
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-              marginBottom: '1.5rem',
-            }}>
-              <span style={{ display: 'block', ...fadeUp(120) }}>
-                El POS que
+            {/* Headline */}
+            <h1
+              style={{
+                fontFamily: '"Fraunces", Georgia, serif',
+                fontSize: 'clamp(2.6rem, 5.5vw, 4.5rem)',
+                color: '#F4ECD8',
+                lineHeight: 1.08,
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+                marginBottom: '0.75rem',
+                ...fadeUp(120),
+              }}
+            >
+              Encárgate de tu{' '}
+              <span style={{ fontStyle: 'italic', color: '#C8903F' }}>
+                <RotatingWord words={WORDS} interval={2200} />
               </span>
-              <span style={{ display: 'block', fontStyle: 'italic', color: '#C8903F', ...fadeUp(220) }}>
-                entiende tu{' '}
-                <RotatingWord words={WORDS} interval={3200} />
-              </span>
+              <span>.</span>
             </h1>
 
+            {/* Subtítulo */}
+            <p
+              className="font-body mb-5"
+              style={{
+                ...fadeUp(220),
+                color: '#F4ECD8',
+                fontSize: 'clamp(1.15rem, 2vw, 1.35rem)',
+                fontWeight: 500,
+                opacity: mounted ? 0.7 : 0,
+              }}
+            >
+              mezo se encarga del resto.
+            </p>
+
+            {/* Descripción */}
             <p
               className="font-body mb-8"
               style={{
-                ...fadeUp(360),
+                ...fadeUp(320),
                 color: '#A89880',
-                fontSize: 'clamp(1rem, 1.8vw, 1.1rem)',
+                fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)',
                 lineHeight: 1.7,
                 maxWidth: 480,
               }}
             >
-              Nequi, Daviplata, efectivo y datáfono en una sola pantalla. Mesas en tiempo real, cierre de caja sin susto y reportes que hablan en pesos.
+              POS, mesas en tiempo real, arqueo sin susto y reportes con IA que te dicen qué vender más, qué pedir y dónde estás perdiendo plata. Todo en una pantalla.
             </p>
 
-            <div style={fadeUp(480)}>
-              <div className="flex flex-col sm:flex-row items-start gap-4 mb-6">
+            {/* CTAs */}
+            <div style={fadeUp(440)}>
+              <div className="flex flex-col sm:flex-row items-start gap-4 mb-5">
                 <MagneticButton
                   as={Link}
                   to="/register"
@@ -146,7 +184,8 @@ export default function Hero() {
                   Probar gratis →
                 </MagneticButton>
                 <a
-                  href="#mockup"
+                  href="#como-funciona"
+                  onClick={scrollToComoFunciona}
                   className="font-body font-medium px-6 py-4 rounded-xl text-base border transition"
                   style={{ borderColor: 'rgba(200,144,63,0.4)', color: '#E4B878' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,144,63,0.08)'; }}
@@ -156,19 +195,21 @@ export default function Hero() {
                 </a>
               </div>
 
-              {/* Precio + trust pills */}
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                <span className="font-body text-sm" style={{ color: '#7A6A58' }}>
+              {/* Precio + trust badges */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-3 text-sm">
+                <span style={{ color: '#7A6A58' }}>
                   Desde{' '}
-                  <span className="font-semibold tabular-nums" style={{ color: '#C8903F' }}>
-                    $39.900/mes
-                  </span>
+                  <span className="font-medium tabular-nums" style={{ color: '#F4ECD8' }}>$39.900</span>/mes
                 </span>
-                {['Sin tarjeta', '30 días gratis', 'Soporte en español'].map(t => (
-                  <span key={t} className="flex items-center gap-1.5 font-body text-sm" style={{ color: '#7A6A58' }}>
-                    <span style={{ color: '#3DAA68' }}>✓</span> {t}
-                  </span>
-                ))}
+                <span className="flex items-center gap-1.5" style={{ color: '#9A8A78' }}>
+                  <CheckIcon />30 días gratis
+                </span>
+                <span className="flex items-center gap-1.5" style={{ color: '#9A8A78' }}>
+                  <SparklesIcon />Análisis con IA
+                </span>
+                <span className="flex items-center gap-1.5" style={{ color: '#9A8A78' }}>
+                  <CheckIcon />Soporte en español
+                </span>
               </div>
             </div>
           </div>
