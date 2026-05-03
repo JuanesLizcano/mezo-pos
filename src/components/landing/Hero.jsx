@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import AuroraGlow from '../effects/AuroraGlow';
-import RotatingWord from '../effects/RotatingWord';
+import Typewriter from '../effects/Typewriter';
 import MagneticButton from '../effects/MagneticButton';
 import HeroMockupCard from './HeroMockupCard';
 
@@ -112,7 +112,7 @@ export default function Hero() {
                   letterSpacing: '0.12em',
                 }}
               >
-                🇨🇴 Hecho en Bogotá · Para Colombia
+                🇨🇴 Hecho en Colombia · Para Colombia
               </span>
             </div>
 
@@ -130,10 +130,16 @@ export default function Hero() {
               }}
             >
               Encárgate de tu{' '}
-              <span style={{ fontStyle: 'italic', color: '#C8903F' }}>
-                <RotatingWord words={WORDS} interval={2200} />
-              </span>
-              <span>.</span>
+              <Typewriter
+                words={WORDS}
+                className="text-[#C8903F]"
+                style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic' }}
+                cursorColor="#C8903F"
+                typingSpeed={80}
+                deletingSpeed={40}
+                pauseAfterTyping={1800}
+              />
+              <span style={{ fontStyle: 'italic', color: '#C8903F' }}>.</span>
             </h1>
 
             {/* Subtítulo */}
