@@ -2,7 +2,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, X, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import AuroraGlow from '../components/effects/AuroraGlow';
+import RotatingWord from '../components/effects/RotatingWord';
 
 // ─── Keyframes globales ───────────────────────────────────────────────────────
 const GLOBAL_STYLES = `
@@ -703,28 +706,36 @@ function Navbar({ scrolled }) {
 }
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
+const HERO_ROTATING_WORDS = [
+  'cobra más rápido.',
+  'vende más inteligente.',
+  'cierra sin sorpresas.',
+  'crece con datos.',
+];
+
 function Hero() {
   const [mounted, setMounted] = useState(false);
+  const prefersReduced = useReducedMotion();
   useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
 
   // Animación estándar — deslizamiento desde abajo
   const anim = (delay) => ({
     opacity:    mounted ? 1 : 0,
     transform:  mounted ? 'translateY(0)' : 'translateY(30px)',
-    transition: `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`,
+    transition: prefersReduced
+      ? `opacity 0.01s ease ${delay}ms`
+      : `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`,
   });
 
   // Animación con blur — para el wordmark
   const animBlur = {
     opacity:    mounted ? 1 : 0,
-    filter:     mounted ? 'blur(0)' : 'blur(8px)',
+    filter:     mounted || prefersReduced ? 'blur(0)' : 'blur(8px)',
     transform:  mounted ? 'translateY(0)' : 'translateY(20px)',
-    transition: 'opacity 1s ease-out, filter 1s ease-out, transform 1s ease-out',
+    transition: prefersReduced
+      ? 'opacity 0.01s'
+      : 'opacity 1s ease-out, filter 1s ease-out, transform 1s ease-out',
   };
-
-  // Palabras del título con stagger escalonado de 50ms
-  const palabras1 = ['Cobra', 'más', 'rápido.'];
-  const palabras2 = ['Vende', 'más', 'inteligente.'];
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-20 pb-24 overflow-hidden">
@@ -735,9 +746,8 @@ function Hero() {
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,7,6,0.6) 0%, rgba(8,7,6,0.82) 55%, #080706 100%)' }} />
       </div>
 
-      {/* Glow central */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at center, rgba(200,144,63,0.14) 0%, transparent 70%)' }} />
+      {/* Resplandor de identidad mezo */}
+      <AuroraGlow variant="top" intensity={0.18} />
 
       {/* Partículas de luz doradas */}
       {HERO_PARTICLES.map((p, i) => (
@@ -746,7 +756,7 @@ function Hero() {
             left: p.left, top: p.top,
             width: p.size, height: p.size,
             background: '#C8903F',
-            animation: `particleFloat ${p.dur}s ease-in-out ${p.delay}s infinite`,
+            animation: prefersReduced ? 'none' : `particleFloat ${p.dur}s ease-in-out ${p.delay}s infinite`,
           }} />
       ))}
 
@@ -761,31 +771,26 @@ function Hero() {
         <div style={anim(200)}>
           <span className="inline-flex items-center gap-2 text-xs font-body font-semibold px-4 py-1.5 rounded-full mb-6"
             style={{ background: 'rgba(200,144,63,0.12)', color: '#E4B878', border: '1px solid rgba(200,144,63,0.3)' }}>
-            🇨🇴 El POS hecho para Colombia
+            🇨🇴 Hecho en Colombia, para Colombia
           </span>
         </div>
 
-        {/* Título con stagger por palabra */}
-        <h1 style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2.4rem, 6vw, 5rem)', color: '#F4ECD8', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.02em', fontVariationSettings: '"SOFT" 50, "opsz" 72' }}>
-          {palabras1.map((w, i) => (
-            <span key={i} style={{
-              display: 'inline-block',
-              opacity:    mounted ? 1 : 0,
-              transform:  mounted ? 'translateY(0)' : 'translateY(40px)',
-              transition: `opacity 0.7s ease ${360 + i * 50}ms, transform 0.7s ease ${360 + i * 50}ms`,
-              marginRight: '0.25em',
-            }}>{w}</span>
-          ))}<br />
-          <span style={{ fontStyle: 'italic', color: '#C8903F' }}>
-            {palabras2.map((w, i) => (
-              <span key={i} style={{
-                display: 'inline-block',
-                opacity:    mounted ? 1 : 0,
-                transform:  mounted ? 'translateY(0)' : 'translateY(40px)',
-                transition: `opacity 0.7s ease ${360 + (palabras1.length + i) * 50}ms, transform 0.7s ease ${360 + (palabras1.length + i) * 50}ms`,
-                marginRight: i < palabras2.length - 1 ? '0.25em' : 0,
-              }}>{w}</span>
-            ))}
+        {/* Título: primera línea estática + segunda línea con RotatingWord */}
+        <h1 style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2.4rem, 6vw, 5rem)', color: '#F4ECD8', lineHeight: 1.1, fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <span style={{
+            display: 'inline-block',
+            opacity:   mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(40px)',
+            transition: prefersReduced ? 'opacity 0.01s' : 'opacity 0.7s ease 360ms, transform 0.7s ease 360ms',
+          }}>
+            Tu negocio,
+          </span>
+          <br />
+          <span style={{ fontStyle: 'italic', color: '#C8903F', display: 'inline-block',
+            opacity:   mounted ? 1 : 0,
+            transition: prefersReduced ? 'opacity 0.01s' : 'opacity 0.7s ease 480ms',
+          }}>
+            <RotatingWord words={HERO_ROTATING_WORDS} interval={3200} />
           </span>
         </h1>
 
@@ -795,13 +800,20 @@ function Hero() {
 
         <div style={anim(750)}>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <Link to="/register"
-              className="font-body font-semibold px-8 py-4 rounded-xl text-base transition w-full sm:w-auto"
-              style={{ background: '#C8903F', color: '#080706', boxShadow: '0 0 36px rgba(200,144,63,0.35)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#A87528'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
-              Empieza gratis — 30 días →
-            </Link>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full sm:w-auto"
+            >
+              <Link to="/register"
+                className="font-body font-semibold px-8 py-4 rounded-xl text-base transition block text-center"
+                style={{ background: '#C8903F', color: '#080706', boxShadow: '0 0 36px rgba(200,144,63,0.35)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#E4B878'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
+                Empieza gratis — 30 días →
+              </Link>
+            </motion.div>
             <a href="#mockup"
               className="font-body font-medium px-6 py-4 rounded-xl text-base border transition w-full sm:w-auto text-center"
               style={{ borderColor: 'rgba(200,144,63,0.4)', color: '#E4B878' }}
@@ -1138,10 +1150,30 @@ function SeccionIA() {
 }
 
 // ─── Features 3×3 ────────────────────────────────────────────────────────────
+function FeatureCard({ f }) {
+  return (
+    <motion.div
+      className="p-5 rounded-2xl border"
+      style={{ background: '#141210', borderColor: '#2A2520' }}
+      whileHover={{
+        y: -2,
+        borderColor: 'rgba(200,144,63,0.40)',
+        boxShadow: '0 8px 30px rgba(200,144,63,0.08)',
+      }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="text-2xl mb-3">{f.emoji}</div>
+      <h3 className="font-body font-semibold mb-2" style={{ color: '#F4ECD8', fontSize: 14 }}>{f.title}</h3>
+      <p className="font-body text-sm" style={{ color: '#7A6A58', lineHeight: 1.6 }}>{f.desc}</p>
+    </motion.div>
+  );
+}
+
 function Features() {
   return (
-    <section id="características" className="py-24 px-4">
-      <div className="max-w-5xl mx-auto">
+    <section id="características" className="relative py-24 px-4 overflow-hidden">
+      <AuroraGlow variant="sides" intensity={0.10} />
+      <div className="relative z-10 max-w-5xl mx-auto">
         <Fade>
           <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>Características</p>
           <h2 className="text-center mb-14"
@@ -1152,24 +1184,7 @@ function Features() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {FEATURES_GRID.map((f, i) => (
             <Fade key={f.title} delay={i * 55}>
-              <div className="p-5 rounded-2xl border"
-                style={{ background: '#141210', borderColor: '#2A2520', transition: 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)' }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = 'rgba(200,144,63,0.4)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  const ico = e.currentTarget.querySelector('.feat-ico');
-                  if (ico) ico.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = '#2A2520';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  const ico = e.currentTarget.querySelector('.feat-ico');
-                  if (ico) ico.style.transform = 'scale(1)';
-                }}>
-                <div className="feat-ico text-2xl mb-3" style={{ display: 'inline-block', transition: 'transform 0.3s cubic-bezier(0.34,1.56,0.64,1)' }}>{f.emoji}</div>
-                <h3 className="font-body font-semibold mb-2" style={{ color: '#F4ECD8', fontSize: 14 }}>{f.title}</h3>
-                <p className="font-body text-sm" style={{ color: '#7A6A58', lineHeight: 1.6 }}>{f.desc}</p>
-              </div>
+              <FeatureCard f={f} />
             </Fade>
           ))}
         </div>
@@ -1341,8 +1356,9 @@ function Precios() {
   const [anual, setAnual] = useState(false);
   const [modalElite, setModalElite] = useState(false);
   return (
-    <section id="precios" className="py-24 px-4" style={{ background: '#0A0907' }}>
-      <div className="max-w-5xl mx-auto">
+    <section id="precios" className="relative py-24 px-4 overflow-hidden" style={{ background: '#0A0907' }}>
+      <AuroraGlow variant="center" intensity={0.12} />
+      <div className="relative z-10 max-w-5xl mx-auto">
         <Fade>
           <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>Precios</p>
           <h2 className="text-center mb-6"
@@ -1470,8 +1486,9 @@ function Precios() {
 function FAQs() {
   const [abierto, setAbierto] = useState(null);
   return (
-    <section id="faqs" className="py-24 px-4">
-      <div className="max-w-2xl mx-auto">
+    <section id="faqs" className="relative py-24 px-4 overflow-hidden">
+      <AuroraGlow variant="bottom" intensity={0.08} />
+      <div className="relative z-10 max-w-2xl mx-auto">
         <Fade>
           <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>FAQ</p>
           <h2 className="text-center mb-12"
@@ -1482,17 +1499,38 @@ function FAQs() {
         <div className="space-y-2">
           {FAQS.map((faq, i) => (
             <Fade key={i} delay={i * 45}>
-              <div className="rounded-2xl border overflow-hidden transition-colors"
-                style={{ borderColor: abierto === i ? 'rgba(200,144,63,0.3)' : '#2A2520', background: '#141210' }}>
+              <motion.div
+                className="rounded-2xl border overflow-hidden"
+                animate={{ borderColor: abierto === i ? 'rgba(200,144,63,0.3)' : '#2A2520' }}
+                transition={{ duration: 0.25 }}
+                style={{ background: '#141210' }}
+              >
                 <button className="w-full flex items-center justify-between px-5 py-4 text-left"
                   onClick={() => setAbierto(abierto === i ? null : i)}>
                   <span className="font-body font-semibold text-sm pr-4" style={{ color: '#F4ECD8' }}>{faq.q}</span>
-                  <ChevronDown size={17} style={{ color: '#C8903F', flexShrink: 0, transform: abierto === i ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }} />
+                  <motion.span
+                    animate={{ rotate: abierto === i ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ display: 'flex', flexShrink: 0 }}
+                  >
+                    <ChevronDown size={17} style={{ color: '#C8903F' }} />
+                  </motion.span>
                 </button>
-                <div style={{ maxHeight: abierto === i ? '300px' : '0', overflow: 'hidden', transition: 'max-height 0.35s ease' }}>
-                  <p className="font-body text-sm px-5 pb-5" style={{ color: '#7A6A58', lineHeight: 1.75 }}>{faq.a}</p>
-                </div>
-              </div>
+                <AnimatePresence initial={false}>
+                  {abierto === i && (
+                    <motion.div
+                      key="content"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <p className="font-body text-sm px-5 pb-5" style={{ color: '#7A6A58', lineHeight: 1.75 }}>{faq.a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             </Fade>
           ))}
         </div>
@@ -1587,7 +1625,11 @@ function Footer() {
   ];
 
   return (
-    <footer className="px-4 pt-16 pb-8 border-t" style={{ borderColor: '#2A2520', background: '#080706' }}>
+    <footer className="relative px-4 pt-16 pb-8" style={{ background: '#080706' }}>
+      {/* Gradiente de transición desde la sección anterior */}
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: '#2A2520' }} />
+      <div className="absolute -top-16 left-0 right-0 h-16 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, transparent, rgba(8,7,6,0.9))' }} />
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
 
