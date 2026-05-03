@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LogOut, Home, ShoppingBag, Receipt, LayoutGrid, BarChart2, Users, Calculator, MessageCircle } from 'lucide-react';
+import { Home, ShoppingBag, Receipt, LayoutGrid, BarChart2, Users, Calculator, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployee } from '../../context/EmployeeContext';
 import MezoWordmark from '../brand/MezoWordmark';
@@ -78,19 +79,55 @@ export default function Navbar() {
           </svg>
         </button>
 
-        <span className="text-base text-mezo-cream-dim hidden md:block font-body">
-          {negocio?.name ?? user?.email}
-        </span>
+        <NegocioBadge nombre={negocio?.name ?? user?.email} />
         <div className="hidden md:block w-px h-5 bg-mezo-ink-line" />
 
-        <button
+        <motion.button
           onClick={logout}
-          className="flex items-center gap-2 text-base text-mezo-stone hover:text-mezo-rojo transition"
+          whileHover={{ x: 2 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors"
+          style={{ color: '#9A8A78' }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#C8573F'; e.currentTarget.style.background = 'rgba(200,87,63,0.06)'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#9A8A78'; e.currentTarget.style.background = 'transparent'; }}
         >
-          <LogOut size={16} />
-          <span className="hidden sm:block">Salir</span>
-        </button>
+          <svg
+            width="14" height="14" viewBox="0 0 24 24" fill="none"
+            className="transition-transform group-hover:translate-x-0.5"
+            stroke="currentColor"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <polyline points="16 17 21 12 16 7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <line x1="21" y1="12" x2="9" y2="12" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+          <span>Salir</span>
+        </motion.button>
       </div>
     </header>
+  );
+}
+
+function NegocioBadge({ nombre }) {
+  const inicial = nombre?.charAt(0)?.toUpperCase() || 'M';
+  return (
+    <div className="flex items-center gap-2.5">
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="w-8 h-8 rounded-full flex items-center justify-center text-[#080706] text-sm font-semibold flex-shrink-0"
+        style={{
+          background: 'linear-gradient(135deg, #C8903F 0%, #E4B878 100%)',
+          boxShadow: '0 4px 12px rgba(200,144,63,0.3)',
+          fontFamily: 'Fraunces, Georgia, serif',
+          fontStyle: 'italic',
+        }}
+      >
+        {inicial}
+      </motion.div>
+      <span className="text-sm font-medium hidden md:inline font-body" style={{ color: '#F4ECD8' }}>
+        {nombre}
+      </span>
+    </div>
   );
 }
