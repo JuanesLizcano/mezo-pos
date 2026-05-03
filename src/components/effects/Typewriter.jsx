@@ -1,23 +1,17 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 
 export default function Typewriter({
   words = [],
-  speed = 70,
-  initialDelay = 0,
-  waitTime = 1500,
-  deleteSpeed = 40,
-  loop = true,
+  speed = 90,
+  deleteSpeed = 50,
+  waitTime = 1600,
   className = '',
   style = {},
   cursorColor = '#C8903F',
-  showCursor = true,
-  hideCursorOnType = false,
 }) {
-  const [displayText, setDisplayText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [text, setText] = useState('');
+  const [wordIndex, setWordIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -31,75 +25,43 @@ export default function Typewriter({
   useEffect(() => {
     if (reducedMotion || words.length === 0) return;
 
-    let timeout;
-    const currentText = words[currentTextIndex];
+    const word = words[wordIndex];
+    let delay;
 
-    const startTyping = () => {
-      if (isDeleting) {
-        if (displayText === '') {
-          setIsDeleting(false);
-          if (currentTextIndex === words.length - 1 && !loop) return;
-          setCurrentTextIndex((prev) => (prev + 1) % words.length);
-          setCurrentIndex(0);
-        } else {
-          timeout = setTimeout(() => {
-            setDisplayText((prev) => prev.slice(0, -1));
-          }, deleteSpeed);
-        }
-      } else {
-        if (currentIndex < currentText.length) {
-          timeout = setTimeout(() => {
-            setDisplayText((prev) => prev + currentText[currentIndex]);
-            setCurrentIndex((prev) => prev + 1);
-          }, speed);
-        } else if (words.length > 1) {
-          timeout = setTimeout(() => {
-            setIsDeleting(true);
-          }, waitTime);
-        }
-      }
-    };
-
-    if (currentIndex === 0 && !isDeleting && displayText === '') {
-      timeout = setTimeout(startTyping, initialDelay);
-    } else {
-      startTyping();
+    if (!isDeleting && text.length < word.length) {
+      delay = setTimeout(() => setText(word.slice(0, text.length + 1)), speed);
+    } else if (!isDeleting && text.length === word.length) {
+      delay = setTimeout(() => setIsDeleting(true), waitTime);
+    } else if (isDeleting && text.length > 0) {
+      delay = setTimeout(() => setText(word.slice(0, text.length - 1)), deleteSpeed);
+    } else if (isDeleting && text.length === 0) {
+      setIsDeleting(false);
+      setWordIndex((i) => (i + 1) % words.length);
     }
 
-    return () => clearTimeout(timeout);
-  }, [currentIndex, displayText, isDeleting, speed, deleteSpeed, waitTime, words, currentTextIndex, loop, reducedMotion]);
+    return () => clearTimeout(delay);
+  }, [text, isDeleting, wordIndex, words, speed, deleteSpeed, waitTime, reducedMotion]);
 
   if (reducedMotion) {
     return <span className={className} style={style}>{words[0] || ''}</span>;
   }
 
-  const isTypingNow = currentIndex < (words[currentTextIndex]?.length ?? 0) || isDeleting;
-
   return (
-    <span className={`inline whitespace-pre-wrap ${className}`} style={style} aria-live="polite">
-      <span>{displayText}</span>
-      {showCursor && (
-        <motion.span
-          aria-hidden
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{
-            duration: 0.01,
-            repeat: Infinity,
-            repeatDelay: 0.4,
-            repeatType: 'reverse',
-          }}
-          style={{
-            display: 'inline-block',
-            width: '3px',
-            height: '0.85em',
-            backgroundColor: cursorColor,
-            marginLeft: '4px',
-            verticalAlign: '-0.05em',
-            ...(hideCursorOnType && isTypingNow ? { visibility: 'hidden' } : {}),
-          }}
-        />
-      )}
+    <span className="inline-flex items-baseline" aria-live="polite">
+      <span className={className} style={style}>{text}</span>
+      <span
+        aria-hidden
+        style={{
+          display: 'inline-block',
+          width: '3px',
+          height: '0.85em',
+          backgroundColor: cursorColor,
+          marginLeft: '4px',
+          verticalAlign: '-0.05em',
+          animation: 'mezo-cursor-blink 1s steps(1) infinite',
+        }}
+      />
+      <style>{`@keyframes mezo-cursor-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }`}</style>
     </span>
   );
 }
