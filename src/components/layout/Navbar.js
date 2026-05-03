@@ -13,7 +13,7 @@ const NAV_ITEMS_BASE = [
   { to: '/reportes',     label: 'Reportes',  Icon: BarChart2,      roles: null },
   { to: '/empleados',    label: 'Equipo',    Icon: Users,          roles: null },
   { to: '/mensajes',     label: 'Mensajes',  Icon: MessageCircle,  roles: null },
-  { to: '/configuracion',label: 'Config',    Icon: Settings,       roles: null },
+  { to: '/configuracion',label: 'Configuración', Icon: Settings,    roles: null },
 ];
 
 export default function Navbar() {
