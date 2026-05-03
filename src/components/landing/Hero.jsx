@@ -82,7 +82,7 @@ export default function Hero() {
       />
 
       <AuroraGlow variant="top" intensity={0.18} />
-      <GoldenSparkles count={12} />
+      <GoldenSparkles count={24} />
 
       {/* Partículas doradas */}
       {PARTICLES.map((p, i) => (
