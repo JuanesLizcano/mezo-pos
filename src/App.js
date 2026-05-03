@@ -25,6 +25,7 @@ import Privacidad from './pages/Privacidad';
 import SobreMezo from './pages/SobreMezo';
 import CentroAyuda from './pages/CentroAyuda';
 import EstadoSistema from './pages/EstadoSistema';
+import Equipo from './pages/Equipo';
 import NotFound from './pages/NotFound';
 import WhatsAppButton from './components/WhatsAppButton';
 
@@ -64,6 +65,7 @@ function App() {
             <Route path="/sobre"      element={<SobreMezo />} />
             <Route path="/ayuda"      element={<CentroAyuda />} />
             <Route path="/estado"     element={<EstadoSistema />} />
+            <Route path="/equipo"     element={<Equipo />} />
 
             {/* Protegidas */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

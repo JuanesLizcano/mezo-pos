@@ -1438,9 +1438,9 @@ function Footer() {
       titulo: 'Empresa',
       links: [
         { label: 'Sobre mezo',          href: '/sobre' },
+        { label: 'Conoce al equipo',    href: '/equipo' },
         { label: 'Blog',                href: '/blog' },
         { label: 'Trabaja con nosotros',href: '/careers' },
-        { label: 'Contacto',            href: '/contacto' },
       ],
     },
     {
