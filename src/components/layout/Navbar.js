@@ -36,14 +36,16 @@ export default function Navbar() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `relative flex items-center gap-2 px-4 py-2 rounded-mezo-sm font-medium transition`
+                `group relative flex items-center gap-2 px-4 py-2 rounded-mezo-sm font-medium transition`
                 + ` text-[15px]`
                 + (isActive
                   ? ' bg-mezo-ink-muted text-mezo-gold'
                   : ' text-mezo-cream-dim hover:text-mezo-cream hover:bg-mezo-ink-raised')
               }
             >
-              <Icon size={16} />
+              <span className="transition-transform duration-150 group-hover:-translate-y-px group-hover:translate-x-px">
+                <Icon size={16} />
+              </span>
               {label}
               {/* Badge "próximamente" en Mensajes — feature en construcción */}
               {to === '/mensajes' && (

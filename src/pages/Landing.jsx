@@ -33,6 +33,17 @@ const GLOBAL_STYLES = `
     0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
     50%       { transform: translateY(-12px) scale(1.1); opacity: 0.6; }
   }
+  @keyframes ctaShimmer {
+    0%   { transform: translateX(-120%) skewX(-12deg); }
+    100% { transform: translateX(280%)  skewX(-12deg); }
+  }
+  .mezo-cta-shimmer { position: relative; overflow: hidden; }
+  .mezo-cta-shimmer::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+    animation: ctaShimmer 2.8s ease-in-out 1.5s infinite;
+  }
   @keyframes iaGlow {
     0%, 100% { box-shadow: 0 0 0 1px rgba(200,144,63,0.3), 0 0 16px rgba(200,144,63,0.05); }
     50%       { box-shadow: 0 0 0 1px rgba(61,170,104,0.3), 0 0 16px rgba(61,170,104,0.05); }
@@ -807,7 +818,7 @@ function Hero() {
               className="w-full sm:w-auto"
             >
               <Link to="/register"
-                className="font-body font-semibold px-8 py-4 rounded-xl text-base transition block text-center"
+                className="mezo-cta-shimmer font-body font-semibold px-8 py-4 rounded-xl text-base transition block text-center"
                 style={{ background: '#C8903F', color: '#080706', boxShadow: '0 0 36px rgba(200,144,63,0.35)' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#E4B878'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
@@ -1409,7 +1420,7 @@ function Precios() {
                 <p className="font-body font-semibold mb-1" style={{ color: '#7A6A58', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                   {plan.nombre}
                 </p>
-                <div className="mb-0.5" style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 36, color: '#F4ECD8', fontWeight: 700, lineHeight: 1, transition: 'all 0.3s ease' }}>
+                <div className="mb-0.5" style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 36, color: '#F4ECD8', fontWeight: 700, lineHeight: 1, transition: 'all 0.3s ease', fontVariantNumeric: 'tabular-nums' }}>
                   {formatCOP(anual ? plan.precio.anual : plan.precio.mensual)}
                 </div>
                 <p className="font-body text-xs mb-1" style={{ color: '#7A6A58' }}>

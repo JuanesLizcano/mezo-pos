@@ -22,6 +22,7 @@ import PantallaCocina from './pages/PantallaCocina';
 import Mensajes from './pages/Mensajes';
 import Terminos from './pages/Terminos';
 import Privacidad from './pages/Privacidad';
+import NotFound from './pages/NotFound';
 
 // Redirige / al dashboard si está logueado, o a la Landing si no
 function RootRedirect() {
@@ -69,8 +70,8 @@ function App() {
             <Route path="/cocina"         element={<ProtectedRoute><PantallaCocina /></ProtectedRoute>} />
             <Route path="/mensajes"       element={<ProtectedRoute><Mensajes /></ProtectedRoute>} />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
 
           <Toaster

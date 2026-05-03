@@ -183,7 +183,7 @@ function KpiChip({ label, valor, color }) {
                WebkitBackdropFilter: 'blur(12px)', border: `1px solid ${color}30` }}>
       <div>
         <p className="text-mezo-stone font-body uppercase tracking-widest" style={{ fontSize: 9 }}>{label}</p>
-        <p className="font-mono font-bold text-base leading-tight" style={{ color }}>{valor}</p>
+        <p className="font-mono font-bold text-base leading-tight" style={{ color, fontVariantNumeric: 'tabular-nums' }}>{valor}</p>
       </div>
     </div>
   );
