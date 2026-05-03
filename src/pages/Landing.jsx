@@ -96,24 +96,6 @@ function useTextRotator(texts, interval = 3000) {
   return { text: texts[index], visible };
 }
 
-// ─── Hook: contador animado desde 0 ──────────────────────────────────────────
-function useCountUp(target, duration = 1600) {
-  const [ref, inView] = useInView(0.1);
-  const [count, setCount] = useState(0);
-  const started = useRef(false);
-  useEffect(() => {
-    if (!inView || started.current) return;
-    started.current = true;
-    const t0 = Date.now();
-    const id = setInterval(() => {
-      const p = Math.min((Date.now() - t0) / duration, 1);
-      setCount(Math.round(target * (1 - Math.pow(1 - p, 3)))); // ease-out cubic
-      if (p >= 1) clearInterval(id);
-    }, 16);
-    return () => clearInterval(id);
-  }, [inView, target, duration]);
-  return [ref, count];
-}
 
 // ─── Datos ────────────────────────────────────────────────────────────────────
 const CTA_TEXTS = ['Prueba gratis →', 'Empieza hoy →', 'Regístrate →', 'Comienza gratis →'];
@@ -197,11 +179,6 @@ const PLANES = {
   },
 };
 
-const STATS = [
-  { value: 59, display: n => `${n}%`,     label: 'de restaurantes en Colombia sin sistema digital' },
-  { value: 5,  display: n => `<${n} min`, label: 'para montar tu negocio desde cero' },
-  { value: 10, display: n => `<${n}s`,    label: 'por orden en el POS — en hora pico' },
-];
 
 function formatCOP(n) {
   return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
@@ -704,34 +681,6 @@ function Navbar({ scrolled }) {
 }
 
 
-// ─── Stats con contadores animados ────────────────────────────────────────────
-function StatCard({ value, display, label }) {
-  const [ref, count] = useCountUp(value, 1800);
-  return (
-    <div ref={ref} className="text-center">
-      <p style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2rem, 4vw, 2.8rem)', color: '#C8903F', fontWeight: 700, lineHeight: 1 }}>
-        {display(count)}
-      </p>
-      <p className="font-body text-sm mt-2" style={{ color: '#7A6A58', lineHeight: 1.5 }}>{label}</p>
-    </div>
-  );
-}
-
-function StatsSection() {
-  return (
-    <section className="py-16 px-4 border-t border-b" style={{ background: '#0A0907', borderColor: 'rgba(200,144,63,0.08)' }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
-          {STATS.map((s, i) => (
-            <Fade key={i} delay={i * 130}>
-              <StatCard value={s.value} display={s.display} label={s.label} />
-            </Fade>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ─── Para quién es ────────────────────────────────────────────────────────────
 function TiposNegocio() {
@@ -1641,7 +1590,6 @@ export default function Landing() {
       <div style={{ background: '#080706', minHeight: '100vh' }}>
         <Navbar scrolled={scrolled} />
         <Hero />
-        <StatsSection />
         <SliderMockups />
         <TiposNegocio />
         <Beneficios />
