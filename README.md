@@ -25,3 +25,4 @@ En desarrollo activo — Beta con primer cliente Mayo 2026
 ## Equipo
 - Juanes Lizcano — Founder & Developer
 - Manuel Sanchez — Founder & Developer
+- Sofia Pulido — Co-Founder & Developer
