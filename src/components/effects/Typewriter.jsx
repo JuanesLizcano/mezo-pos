@@ -1,99 +1,84 @@
 import { useEffect, useState } from 'react';
 
+/**
+ * Typewriter rotativo compatible con React 19.
+ * Un solo useEffect con loop async + flag mounted para cancelación limpia.
+ * No respeta prefers-reduced-motion: el efecto es parte del diseño de la landing.
+ */
 export default function Typewriter({
   words = [],
-  speed = 70,
-  initialDelay = 0,
-  waitTime = 1500,
-  deleteSpeed = 40,
-  loop = true,
+  typingSpeed = 90,
+  deletingSpeed = 50,
+  pauseAfterTyping = 1600,
+  pauseBeforeNext = 350,
   className = '',
   style = {},
   cursorColor = '#C8903F',
-  showCursor = true,
-  hideCursorOnType = false,
 }) {
-  const [displayText, setDisplayText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [text, setText] = useState('');
 
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mq.matches);
-    const handler = (e) => setReducedMotion(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
+    if (words.length === 0) return;
 
-  useEffect(() => {
-    if (reducedMotion || words.length === 0) return;
+    let mounted = true;
+    let timeoutId;
 
-    let timeout;
-    const currentText = words[currentTextIndex];
+    const sleep = (ms) => new Promise((resolve) => {
+      timeoutId = setTimeout(resolve, ms);
+    });
 
-    const tick = () => {
-      if (isDeleting) {
-        if (displayText.length === 0) {
-          setIsDeleting(false);
-          if (currentTextIndex === words.length - 1 && !loop) return;
-          setCurrentTextIndex((prev) => (prev + 1) % words.length);
-          setCurrentIndex(0);
-        } else {
-          timeout = setTimeout(() => {
-            setDisplayText((prev) => prev.slice(0, -1));
-          }, deleteSpeed);
+    const run = async () => {
+      let wordIndex = 0;
+
+      while (mounted) {
+        const currentWord = words[wordIndex];
+
+        for (let i = 1; i <= currentWord.length; i++) {
+          if (!mounted) return;
+          setText(currentWord.slice(0, i));
+          await sleep(typingSpeed);
         }
-      } else {
-        if (currentIndex < currentText.length) {
-          timeout = setTimeout(() => {
-            setDisplayText((prev) => prev + currentText[currentIndex]);
-            setCurrentIndex((prev) => prev + 1);
-          }, speed);
-        } else if (words.length > 1) {
-          timeout = setTimeout(() => setIsDeleting(true), waitTime);
+
+        await sleep(pauseAfterTyping);
+        if (!mounted) return;
+
+        for (let i = currentWord.length - 1; i >= 0; i--) {
+          if (!mounted) return;
+          setText(currentWord.slice(0, i));
+          await sleep(deletingSpeed);
         }
+
+        await sleep(pauseBeforeNext);
+        if (!mounted) return;
+
+        wordIndex = (wordIndex + 1) % words.length;
       }
     };
 
-    const delay =
-      currentIndex === 0 && !isDeleting && displayText.length === 0
-        ? initialDelay
-        : 0;
+    run();
 
-    timeout = setTimeout(tick, delay);
-
-    return () => clearTimeout(timeout);
-  }, [currentIndex, displayText, isDeleting, speed, deleteSpeed, waitTime, words, currentTextIndex, loop, initialDelay, reducedMotion]);
-
-  if (reducedMotion) {
-    return <span className={className} style={style}>{words[0] || ''}</span>;
-  }
-
-  const isTypingNow = !isDeleting && currentIndex < (words[currentTextIndex]?.length ?? 0);
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [words, typingSpeed, deletingSpeed, pauseAfterTyping, pauseBeforeNext]);
 
   return (
-    <span className={`inline whitespace-pre-wrap ${className}`} style={style} aria-live="polite">
-      <span>{displayText}</span>
-      {showCursor && (
-        <>
-          <span
-            aria-hidden
-            style={{
-              display: 'inline-block',
-              width: '3px',
-              height: '0.85em',
-              backgroundColor: cursorColor,
-              marginLeft: '4px',
-              verticalAlign: '-0.05em',
-              animation: 'mezo-cursor-blink 1s steps(1) infinite',
-              ...(hideCursorOnType && isTypingNow ? { visibility: 'hidden' } : {}),
-            }}
-          />
-          <style>{`@keyframes mezo-cursor-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }`}</style>
-        </>
-      )}
+    <span className="inline-flex items-baseline" aria-live="polite">
+      <span className={className} style={style}>{text}</span>
+      <span
+        aria-hidden
+        style={{
+          display: 'inline-block',
+          width: '3px',
+          height: '0.85em',
+          backgroundColor: cursorColor,
+          marginLeft: '4px',
+          verticalAlign: '-0.05em',
+          animation: 'mezo-cursor-blink 1s steps(2) infinite',
+        }}
+      />
+      <style>{`@keyframes mezo-cursor-blink { 50% { opacity: 0; } }`}</style>
     </span>
   );
 }

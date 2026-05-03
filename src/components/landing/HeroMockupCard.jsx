@@ -119,7 +119,7 @@ export default function HeroMockupCard() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2, ease }}
-            className="relative z-10 overflow-hidden rounded-2xl border shadow-[0_30px_60px_rgba(0,0,0,0.5)] min-w-[340px] sm:min-w-[420px]"
+            className="relative z-10 rounded-2xl border shadow-[0_30px_60px_rgba(0,0,0,0.5)] min-w-[340px] sm:min-w-[420px]"
             style={{
               background: '#141210',
               borderColor: 'rgba(244,236,216,0.10)',
