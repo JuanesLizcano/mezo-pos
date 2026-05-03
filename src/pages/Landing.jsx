@@ -130,14 +130,14 @@ const FEATURES_GRID = [
 ];
 
 const FAQS = [
-  { q: '¿Necesito instalar algo?',            a: 'No. mezo funciona desde cualquier navegador en tablet, celular o computador. Sin descargas, sin instalaciones.' },
-  { q: '¿Funciona sin internet?',             a: 'El POS necesita conexión para sincronizar en tiempo real. Recomendamos tener conexión estable o un plan de datos como respaldo.' },
-  { q: '¿Puedo cancelar cuando quiera?',      a: 'Sí. Sin contratos, sin penalizaciones. Cancelas desde tu dashboard en cualquier momento.' },
-  { q: '¿Cómo funciona el período de prueba?',a: '30 días completamente gratis en el plan Pro. Sin cobros hasta que decidas continuar. Al terminar eliges si continúas o no.' },
-  { q: '¿Puedo tener varios empleados?',      a: 'Sí. En plan Semilla hasta 5 empleados; en Pro y Élite ilimitados, cada uno con su propio acceso y rol.' },
-  { q: '¿Qué pasa con mis datos si cancelo?', a: 'Puedes exportar toda tu información antes de cancelar. Tus datos se eliminan de nuestros servidores 30 días después.' },
-  { q: '¿Funciona para múltiples sedes?',     a: 'Plan Élite incluye sedes ilimitadas con reportes consolidados. Los planes Semilla y Pro son para una sola sede.' },
-  { q: '¿Tienen soporte en español?',         a: 'Sí, todo el soporte es en español colombiano. Chat en el dashboard, WhatsApp y email.' },
+  { q: '¿Necesito instalar algo?',                   a: 'Nada. mezo corre desde el navegador del celular, la tablet o el computador que ya tienes. Sin descargas, sin configuraciones raras.' },
+  { q: '¿Y si se va el internet en pleno servicio?', a: 'Recomendamos tener un plan de datos como respaldo — un $18.000/mes de datos en el celular te salva el turno. Para la sincronización en tiempo real sí se necesita conexión.' },
+  { q: '¿Cuánto vale y cuándo me cobran?',           a: '30 días completamente gratis, sin tarjeta. Al día 31 te avisamos y decides si continúas. Si cancelas antes, no se cobra nada, prometido.' },
+  { q: '¿Puedo cancelar cuando quiera?',             a: 'Sí, sin contratos, sin llamadas al servicio al cliente, sin letras pequeñas. Cancelas en dos clics desde tu dashboard.' },
+  { q: '¿Puedo tener varios empleados?',             a: 'Sí. En Semilla hasta 5 empleados; en Pro y Élite son ilimitados. Cada uno con su propio acceso y su rol: admin, cajero, mesero o cocina.' },
+  { q: '¿Funciona para Nequi y Daviplata?',          a: 'Sí. Efectivo con cambio automático, datáfono, Nequi, Daviplata y transferencia bancaria. Todo registrado, todo en el reporte.' },
+  { q: '¿Qué pasa con mis datos si cancelo?',        a: 'Son tuyos. Puedes exportarlos antes de cancelar. Los borramos de nuestros servidores 30 días después de la cancelación.' },
+  { q: '¿Tienen soporte en español colombiano?',     a: 'Sí, sin bots. Respondemos por WhatsApp, chat en el dashboard y email — en español colombiano, sin tecnicismos.' },
 ];
 
 const PLANES = {
@@ -186,9 +186,9 @@ const PLANES = {
 };
 
 const STATS = [
-  { value: 59, display: n => `${n}%`,     label: 'de negocios gastronómicos sin sistema digital' },
-  { value: 5,  display: n => `<${n} min`, label: 'de configuración desde cero' },
-  { value: 10, display: n => `<${n}s`,    label: 'segundos por orden en el POS' },
+  { value: 59, display: n => `${n}%`,     label: 'de restaurantes en Colombia sin sistema digital' },
+  { value: 5,  display: n => `<${n} min`, label: 'para montar tu negocio desde cero' },
+  { value: 10, display: n => `<${n}s`,    label: 'por orden en el POS — en hora pico' },
 ];
 
 function formatCOP(n) {
@@ -795,7 +795,7 @@ function Hero() {
         </h1>
 
         <p className="font-body mt-6 mb-8 mx-auto" style={{ ...anim(600), color: '#A89880', fontSize: 'clamp(1rem, 2vw, 1.15rem)', maxWidth: 560, lineHeight: 1.7 }}>
-          El sistema de punto de venta que entiende cómo funciona tu negocio. Mesas en tiempo real, todos los métodos de pago colombianos y reportes con inteligencia artificial.
+          Diseñado para cómo se cobra en Colombia: Nequi, Daviplata, efectivo y datáfono en una sola pantalla. Mesas en tiempo real, cierre de caja sin susto y reportes que entienden tu negocio.
         </p>
 
         <div style={anim(750)}>
@@ -824,7 +824,7 @@ function Hero() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6">
-            {['Cancela cuando quieras', 'Configuración en 5 minutos', 'Soporte en español'].map(t => (
+            {['Cancela cuando quieras', 'Funciona desde el día 1', 'Soporte en español colombiano'].map(t => (
               <span key={t} className="flex items-center gap-2 font-body text-sm" style={{ color: '#7A6A58' }}>
                 <span style={{ color: '#3DAA68', fontWeight: 700 }}>✓</span> {t}
               </span>
@@ -1363,7 +1363,7 @@ function Precios() {
           <p className="text-center font-body text-xs uppercase tracking-widest mb-2" style={{ color: '#7A6A58' }}>Precios</p>
           <h2 className="text-center mb-6"
             style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#F4ECD8', fontWeight: 700, lineHeight: 1.1 }}>
-            Planes <span style={{ fontStyle: 'italic', color: '#C8903F' }}>simples y honestos</span>
+            Precios en pesos. <span style={{ fontStyle: 'italic', color: '#C8903F' }}>Sin sorpresas.</span>
           </h2>
           <div className="flex items-center justify-center gap-3 mb-14">
             <span className="font-body text-sm" style={{ color: anual ? '#7A6A58' : '#F4ECD8' }}>Mensual</span>

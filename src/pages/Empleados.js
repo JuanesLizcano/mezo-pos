@@ -134,9 +134,9 @@ export default function Empleados() {
             {empleados.length === 0 && (
               <div className="flex flex-col items-center justify-center h-48 gap-3 text-center">
                 <span style={{ fontSize: 40 }}>👥</span>
-                <p className="text-mezo-cream font-body font-medium">Aún no hay empleados</p>
+                <p className="text-mezo-cream font-body font-medium">Todavía no hay equipo</p>
                 <p className="text-mezo-stone font-body text-sm">
-                  Crea el equipo y asígnales roles para controlar el acceso al sistema.
+                  Agrega a tu gente, asígnales roles y cada uno verá solo lo que necesita.
                 </p>
               </div>
             )}

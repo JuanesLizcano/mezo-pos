@@ -208,8 +208,8 @@ export default function Mesas() {
         ) : mesasFiltradas.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-mezo-stone font-body text-sm">
             {zonaActiva === 'todas'
-              ? 'No hay mesas configuradas. Crea tu primera mesa con "+ Nueva mesa".'
-              : 'No hay mesas en esta zona.'}
+              ? 'Aún no hay mesas — crea la primera con el botón "+ Nueva mesa".'
+              : 'Esta zona está vacía. Cambia de zona o crea una mesa nueva.'}
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">

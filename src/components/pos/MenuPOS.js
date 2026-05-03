@@ -108,7 +108,7 @@ export default function MenuPOS({ categorias, productos, onAgregar }) {
           // Search results grouped by category
           grouped.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-mezo-stone font-body text-sm">
-              No hay productos que coincidan con "{busqueda}".
+              Nada con "{busqueda}" — prueba con otro nombre o categoría.
             </div>
           ) : (
             <div className="space-y-4">
@@ -139,7 +139,7 @@ export default function MenuPOS({ categorias, productos, onAgregar }) {
         ) : (
           filtrados.length === 0 ? (
             <div className="flex items-center justify-center h-40 text-mezo-stone font-body text-sm">
-              No hay productos disponibles en esta categoría.
+              Esta categoría está vacía. Agrega productos desde el módulo Productos.
             </div>
           ) : (
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">

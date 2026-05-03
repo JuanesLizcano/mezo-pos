@@ -8,10 +8,10 @@ import AuroraGlow from '../components/effects/AuroraGlow';
 const SLOGANS = [
   'Todo el negocio, una pantalla.',
   'Menos caos. Más caja.',
-  'El pulso de tu negocio.',
+  'En pesos colombianos, sin letra chica.',
   'Vende más. Piensa menos.',
-  'Tu negocio, bajo control.',
-  'Abre, cobra, cierra.',
+  'La caja que no te da sustos.',
+  'Abre, cobra, cierra. Sin estrés.',
 ];
 
 const easeMezo = [0.22, 1, 0.36, 1];
@@ -116,12 +116,12 @@ export default function Login() {
       setIntentosFallidos(nuevos);
       if (nuevos >= MAX_INTENTOS) {
         setBloqueadoHasta(Date.now() + BLOQUEO_MS);
-        setError('Demasiados intentos fallidos. Espera 5 minutos.');
+        setError('Demasiados intentos. Espera 5 minutos antes de volver a intentar.');
       } else {
         const raw     = err.message || '';
         const mensaje = raw === 'network_error'
-          ? 'Error de conexión. Intenta de nuevo.'
-          : raw || `Credenciales incorrectas. Intento ${nuevos} de ${MAX_INTENTOS}.`;
+          ? 'Sin conexión. Revisa el internet y vuelve a intentar.'
+          : raw || `Correo o contraseña incorrectos — intento ${nuevos} de ${MAX_INTENTOS}.`;
         setError(mensaje);
       }
     } finally {

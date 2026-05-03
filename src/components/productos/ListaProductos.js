@@ -115,14 +115,14 @@ function EstadoVacio({ onNuevo, hayProductos }) {
     <div className="text-center py-16">
       <p className="text-4xl mb-3">📦</p>
       <p className="font-medium text-mezo-cream-dim font-body">
-        {hayProductos ? 'No hay productos en esta categoría' : 'Sin productos aún'}
+        {hayProductos ? 'Nada en esta categoría aún' : 'El menú está vacío'}
       </p>
       {!hayProductos && (
         <>
-          <p className="text-sm mt-1 mb-4 text-mezo-stone font-body">Agrega tu primer producto al menú</p>
+          <p className="text-sm mt-1 mb-4 text-mezo-stone font-body">Agrega tu primer producto y empieza a vender</p>
           <button onClick={onNuevo}
             className="text-sm text-mezo-gold hover:text-mezo-gold-soft transition font-medium font-body">
-            + Crear primer producto
+            + Agregar primer producto
           </button>
         </>
       )}
