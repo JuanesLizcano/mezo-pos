@@ -56,20 +56,24 @@ export default function HeroMockupCard() {
   const mesa = MESAS[idx];
 
   return (
-    <div className="relative py-12 px-6">
+    <motion.div
+      whileHover={prefersReduced ? {} : { y: -4 }}
+      transition={{ duration: 0.4, ease }}
+      className="relative py-12 px-6"
+    >
       {/* Card principal */}
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease }}
-        className="relative rounded-2xl border shadow-[0_30px_60px_rgba(0,0,0,0.5)] min-w-[340px] sm:min-w-[420px]"
+        transition={{ duration: 0.7, delay: 0.2, ease }}
+        className="relative z-10 overflow-hidden rounded-2xl border shadow-[0_30px_60px_rgba(0,0,0,0.5)] min-w-[340px] sm:min-w-[420px]"
         style={{
           background: '#141210',
           borderColor: 'rgba(244,236,216,0.10)',
           padding: '1.5rem 1.75rem',
         }}
       >
-        <BorderBeam duration={8} />
+        <BorderBeam duration={6} />
 
         {/* Header */}
         <div
@@ -177,9 +181,9 @@ export default function HeroMockupCard() {
       {/* Tarjeta flotante: Caja cuadró (arriba derecha) */}
       <motion.div
         initial={{ opacity: 0, y: prefersReduced ? 0 : -12, rotate: prefersReduced ? 0 : 8 }}
-        animate={{ opacity: 1, y: 0, rotate: prefersReduced ? 0 : 6 }}
-        transition={{ duration: 0.7, delay: 0.3, ease }}
-        className="absolute -top-5 -right-4 rounded-lg shadow-[0_10px_30px_rgba(200,144,63,0.15)]"
+        animate={{ opacity: 1, y: 0, rotate: prefersReduced ? 0 : 5 }}
+        transition={{ duration: 0.7, delay: 0.4, ease }}
+        className="absolute -top-3 -right-2 z-20 rounded-lg shadow-[0_8px_24px_rgba(200,144,63,0.25)]"
         style={{
           background: '#141210',
           border: '1px solid rgba(200,144,63,0.40)',
@@ -200,9 +204,9 @@ export default function HeroMockupCard() {
       {/* Tarjeta flotante: Ventas hoy (abajo izquierda) */}
       <motion.div
         initial={{ opacity: 0, y: prefersReduced ? 0 : 12, rotate: prefersReduced ? 0 : -8 }}
-        animate={{ opacity: 1, y: 0, rotate: prefersReduced ? 0 : -6 }}
-        transition={{ duration: 0.7, delay: 0.5, ease }}
-        className="absolute -bottom-8 -left-6 rounded-xl shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+        animate={{ opacity: 1, y: 0, rotate: prefersReduced ? 0 : -5 }}
+        transition={{ duration: 0.7, delay: 0.6, ease }}
+        className="absolute -bottom-4 -left-3 z-20 rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.6)]"
         style={{
           background: '#141210',
           border: '1px solid rgba(244,236,216,0.10)',
@@ -222,6 +226,6 @@ export default function HeroMockupCard() {
           <span className="text-xs tabular-nums" style={{ color: '#3DAA68' }}>+18%</span>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
