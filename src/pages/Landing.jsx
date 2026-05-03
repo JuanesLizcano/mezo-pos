@@ -2,11 +2,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Check, X, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import AuroraGlow from '../components/effects/AuroraGlow';
-import RotatingWord from '../components/effects/RotatingWord';
 import CafeCup from '../components/brand/CafeCup';
+import Hero from '../components/landing/Hero';
 
 // ─── Keyframes globales ───────────────────────────────────────────────────────
 const GLOBAL_STYLES = `
@@ -648,20 +648,6 @@ function SliderMockups() {
   );
 }
 
-// ─── Partículas del hero — posiciones fijas para evitar re-renders ───────────
-const HERO_PARTICLES = [
-  { left: '12%', top: '22%', size: 3, dur: 3.2, delay: 0    },
-  { left: '28%', top: '15%', size: 4, dur: 2.8, delay: 0.8  },
-  { left: '45%', top: '30%', size: 3, dur: 3.8, delay: 1.5  },
-  { left: '63%', top: '18%', size: 4, dur: 2.5, delay: 0.3  },
-  { left: '78%', top: '25%', size: 3, dur: 3.5, delay: 1.1  },
-  { left: '18%', top: '65%', size: 4, dur: 2.9, delay: 0.6  },
-  { left: '55%', top: '72%', size: 3, dur: 3.3, delay: 1.8  },
-  { left: '82%', top: '60%', size: 4, dur: 2.6, delay: 0.4  },
-  { left: '35%', top: '80%', size: 3, dur: 3.7, delay: 1.2  },
-  { left: '90%', top: '40%', size: 3, dur: 3.0, delay: 0.9  },
-];
-
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 function Navbar({ scrolled }) {
   const { text: ctaText, visible: ctaVisible } = useTextRotator(CTA_TEXTS, 3000);
@@ -717,136 +703,6 @@ function Navbar({ scrolled }) {
   );
 }
 
-// ─── Hero ─────────────────────────────────────────────────────────────────────
-const HERO_ROTATING_WORDS = [
-  'cobra más rápido.',
-  'vende más inteligente.',
-  'cierra sin sorpresas.',
-  'crece con datos.',
-];
-
-function Hero() {
-  const [mounted, setMounted] = useState(false);
-  const prefersReduced = useReducedMotion();
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t); }, []);
-
-  // Animación estándar — deslizamiento desde abajo
-  const anim = (delay) => ({
-    opacity:    mounted ? 1 : 0,
-    transform:  mounted ? 'translateY(0)' : 'translateY(30px)',
-    transition: prefersReduced
-      ? `opacity 0.01s ease ${delay}ms`
-      : `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`,
-  });
-
-  // Animación con blur — para el wordmark
-  const animBlur = {
-    opacity:    mounted ? 1 : 0,
-    filter:     mounted || prefersReduced ? 'blur(0)' : 'blur(8px)',
-    transform:  mounted ? 'translateY(0)' : 'translateY(20px)',
-    transition: prefersReduced
-      ? 'opacity 0.01s'
-      : 'opacity 1s ease-out, filter 1s ease-out, transform 1s ease-out',
-  };
-
-  return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-20 pb-24 overflow-hidden">
-      <div className="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1559305616-3f99cd43e353?w=1600"
-          alt="" loading="eager" decoding="async"
-          className="w-full h-full object-cover" style={{ opacity: 0.28 }} />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(8,7,6,0.6) 0%, rgba(8,7,6,0.82) 55%, #080706 100%)' }} />
-      </div>
-
-      {/* Resplandor de identidad mezo */}
-      <AuroraGlow variant="top" intensity={0.18} />
-
-      {/* Partículas de luz doradas */}
-      {HERO_PARTICLES.map((p, i) => (
-        <div key={i} className="absolute pointer-events-none rounded-full"
-          style={{
-            left: p.left, top: p.top,
-            width: p.size, height: p.size,
-            background: '#C8903F',
-            animation: prefersReduced ? 'none' : `particleFloat ${p.dur}s ease-in-out ${p.delay}s infinite`,
-          }} />
-      ))}
-
-      <div className="relative z-10 max-w-4xl mx-auto">
-        {/* Wordmark con blur de entrada */}
-        <div style={{ ...animBlur, marginBottom: 18 }}>
-          <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic', fontSize: 'clamp(1.6rem, 3vw, 2.2rem)', color: '#C8903F', fontWeight: 700, opacity: 0.9 }}>
-            mezo
-          </span>
-        </div>
-
-        <div style={anim(200)}>
-          <span className="inline-flex items-center gap-2 text-xs font-body font-semibold px-4 py-1.5 rounded-full mb-6"
-            style={{ background: 'rgba(200,144,63,0.12)', color: '#E4B878', border: '1px solid rgba(200,144,63,0.3)' }}>
-            🇨🇴 Hecho en Colombia, para Colombia
-          </span>
-        </div>
-
-        {/* Título: primera línea estática + segunda línea con RotatingWord */}
-        <h1 style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 'clamp(2.4rem, 6vw, 5rem)', color: '#F4ECD8', lineHeight: 1.1, fontWeight: 700, letterSpacing: '-0.02em' }}>
-          <span style={{
-            display: 'inline-block',
-            opacity:   mounted ? 1 : 0,
-            transform: mounted ? 'translateY(0)' : 'translateY(40px)',
-            transition: prefersReduced ? 'opacity 0.01s' : 'opacity 0.7s ease 360ms, transform 0.7s ease 360ms',
-          }}>
-            Tu negocio,
-          </span>
-          <br />
-          <span style={{ fontStyle: 'italic', color: '#C8903F', display: 'inline-block',
-            opacity:   mounted ? 1 : 0,
-            transition: prefersReduced ? 'opacity 0.01s' : 'opacity 0.7s ease 480ms',
-          }}>
-            <RotatingWord words={HERO_ROTATING_WORDS} interval={3200} />
-          </span>
-        </h1>
-
-        <p className="font-body mt-6 mb-8 mx-auto" style={{ ...anim(600), color: '#A89880', fontSize: 'clamp(1rem, 2vw, 1.15rem)', maxWidth: 560, lineHeight: 1.7 }}>
-          Diseñado para cómo se cobra en Colombia: Nequi, Daviplata, efectivo y datáfono en una sola pantalla. Mesas en tiempo real, cierre de caja sin susto y reportes que entienden tu negocio.
-        </p>
-
-        <div style={anim(750)}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full sm:w-auto"
-            >
-              <Link to="/register"
-                className="mezo-cta-shimmer font-body font-semibold px-8 py-4 rounded-xl text-base transition block text-center"
-                style={{ background: '#C8903F', color: '#080706', boxShadow: '0 0 36px rgba(200,144,63,0.35)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#E4B878'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#C8903F'; }}>
-                Empieza gratis — 30 días →
-              </Link>
-            </motion.div>
-            <a href="#mockup"
-              className="font-body font-medium px-6 py-4 rounded-xl text-base border transition w-full sm:w-auto text-center"
-              style={{ borderColor: 'rgba(200,144,63,0.4)', color: '#E4B878' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,144,63,0.08)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-              Ver cómo funciona ↓
-            </a>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-6">
-            {['Cancela cuando quieras', 'Funciona desde el día 1', 'Soporte en español colombiano'].map(t => (
-              <span key={t} className="flex items-center gap-2 font-body text-sm" style={{ color: '#7A6A58' }}>
-                <span style={{ color: '#3DAA68', fontWeight: 700 }}>✓</span> {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ─── Stats con contadores animados ────────────────────────────────────────────
 function StatCard({ value, display, label }) {
