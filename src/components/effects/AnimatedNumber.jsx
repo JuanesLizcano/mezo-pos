@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * Contador que anima de 0 al valor objetivo cuando entra al viewport.
- * Respeta prefers-reduced-motion: salta directo al valor final.
+ * No respeta prefers-reduced-motion: la animación es parte del diseño visual.
  */
 export default function AnimatedNumber({
   value,
@@ -10,18 +10,9 @@ export default function AnimatedNumber({
   formatter = (n) => n.toLocaleString('es-CO'),
 }) {
   const [current, setCurrent] = useState(0);
-  const ref     = useRef(null);
-  const reduced = useRef(
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  const ref = useRef(null);
 
   useEffect(() => {
-    if (reduced.current) {
-      setCurrent(value);
-      return;
-    }
-
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
