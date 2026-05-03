@@ -85,7 +85,7 @@ export default function HeroMockupCard() {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1, ease }}
-        className="absolute -top-2 right-6 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+        className="absolute -top-3 -left-2 z-30 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
         style={{
           background: 'rgba(200,87,63,0.10)',
           border: '1px solid rgba(200,87,63,0.30)',
@@ -247,8 +247,8 @@ export default function HeroMockupCard() {
             transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }}
           >
             <motion.div
-              initial={{ opacity: 0, rotate: 8 }}
-              animate={{ opacity: 1, rotate: 5 }}
+              initial={{ opacity: 0, rotate: 4 }}
+              animate={{ opacity: 1, rotate: 3 }}
               transition={{ duration: 0.7, delay: 0.4, ease }}
               className="rounded-lg shadow-[0_8px_24px_rgba(200,144,63,0.25)]"
               style={{
