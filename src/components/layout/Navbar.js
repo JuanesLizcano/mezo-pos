@@ -13,7 +13,7 @@ const NAV_ITEMS_BASE = [
   { to: '/reportes',     label: 'Reportes',  Icon: BarChart2,      roles: null },
   { to: '/empleados',    label: 'Equipo',    Icon: Users,          roles: null },
   { to: '/mensajes',     label: 'Mensajes',  Icon: MessageCircle,  roles: null },
-  { to: '/configuracion',label: 'Config',    Icon: Settings,       roles: ['admin'] },
+  { to: '/configuracion',label: 'Config',    Icon: Settings,       roles: null },
 ];
 
 export default function Navbar() {
@@ -22,8 +22,9 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   function handleLogout() {
+    // Navegar primero — si logout va antes, ProtectedRoute detecta !user y redirige a /login
+    navigate('/', { replace: true });
     logout();
-    navigate('/');
   }
 
   // Filtrar ítems según rol del empleado activo
