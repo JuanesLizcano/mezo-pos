@@ -176,6 +176,15 @@ export default function HeroMockupCard() {
             Nequi
           </div>
         </div>
+
+        {/* Botón Cobrar */}
+        <motion.button
+          whileTap={prefersReduced ? {} : { scale: 0.98 }}
+          className="mt-4 w-full py-3 rounded-xl font-semibold font-body text-sm"
+          style={{ background: '#C8903F', color: '#080706' }}
+        >
+          Cobrar ${mesa.total.toLocaleString('es-CO')}
+        </motion.button>
       </motion.div>
 
       {/* Tarjeta flotante: Caja cuadró (arriba derecha) */}
