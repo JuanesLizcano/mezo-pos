@@ -2,22 +2,24 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import BorderBeam from '../effects/BorderBeam';
 import AnimatedNumber from '../effects/AnimatedNumber';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 
 const MESAS = [
   {
     numero: 4,
+    hora: '3:42 p.m.',
     items: [
-      { nombre: '2× Tinto',      precio: 5000 },
-      { nombre: '1× Croissant',  precio: 4500 },
-      { nombre: '1× Almojábana', precio: 3000 },
-      { nombre: '1× Capuccino',  precio: 7500 },
-      { nombre: '1× Pan de bono',precio: 2500 },
+      { nombre: '2× Tinto',       precio: 5000 },
+      { nombre: '1× Croissant',   precio: 4500 },
+      { nombre: '1× Almojábana',  precio: 3000 },
+      { nombre: '1× Capuccino',   precio: 7500 },
+      { nombre: '1× Pan de bono', precio: 2500 },
     ],
     total: 22500,
-    hora: '3:42 p.m.',
   },
   {
     numero: 7,
+    hora: '3:44 p.m.',
     items: [
       { nombre: '1× Capuccino',   precio: 7500 },
       { nombre: '2× Pan de bono', precio: 5000 },
@@ -25,10 +27,10 @@ const MESAS = [
       { nombre: '1× Limonada',    precio: 5500 },
     ],
     total: 22000,
-    hora: '3:44 p.m.',
   },
   {
     numero: 2,
+    hora: '3:47 p.m.',
     items: [
       { nombre: '3× Americano',    precio: 9000 },
       { nombre: '1× Tostada',      precio: 6500 },
@@ -37,7 +39,6 @@ const MESAS = [
       { nombre: '2× Agua',         precio: 3000 },
     ],
     total: 31000,
-    hora: '3:47 p.m.',
   },
 ];
 
@@ -46,197 +47,264 @@ const ease = [0.22, 1, 0.36, 1];
 export default function HeroMockupCard() {
   const [idx, setIdx] = useState(0);
   const prefersReduced = useReducedMotion();
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
+  // Patrón async/await compatible React 19
   useEffect(() => {
-    if (prefersReduced) return;
-    const id = setInterval(() => setIdx((i) => (i + 1) % MESAS.length), 4500);
-    return () => clearInterval(id);
-  }, [prefersReduced]);
+    let mounted = true;
+    let timeoutId;
+
+    const sleep = (ms) => new Promise(resolve => {
+      timeoutId = setTimeout(resolve, ms);
+    });
+
+    const run = async () => {
+      while (mounted) {
+        await sleep(5000);
+        if (!mounted) return;
+        setIdx(prev => (prev + 1) % MESAS.length);
+      }
+    };
+
+    run();
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   const mesa = MESAS[idx];
 
   return (
-    <motion.div
-      whileHover={prefersReduced ? {} : { y: -4 }}
-      transition={{ duration: 0.4, ease }}
-      className="relative py-12 px-6"
-    >
-      {/* Card principal */}
+    <div className="relative" style={{ perspective: '1500px' }}>
+
+      {/* Badge EN VIVO — fuera del tilt 3D */}
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.2, ease }}
-        className="relative z-10 overflow-hidden rounded-2xl border shadow-[0_30px_60px_rgba(0,0,0,0.5)] min-w-[340px] sm:min-w-[420px]"
+        transition={{ duration: 0.6, delay: 1, ease }}
+        className="absolute -top-2 right-6 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-full"
         style={{
-          background: '#141210',
-          borderColor: 'rgba(244,236,216,0.10)',
-          padding: '1.5rem 1.75rem',
+          background: 'rgba(200,87,63,0.10)',
+          border: '1px solid rgba(200,87,63,0.30)',
+          letterSpacing: '0.1em',
         }}
       >
-        <BorderBeam duration={6} />
+        <motion.span
+          animate={prefersReduced ? {} : { opacity: [1, 0.5, 1] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+          className="inline-block w-1.5 h-1.5 rounded-full"
+          style={{ background: '#E84D2C' }}
+        />
+        <span className="text-[10px] font-medium" style={{ color: '#E89D87' }}>EN VIVO</span>
+      </motion.div>
 
-        {/* Header */}
-        <div
-          className="flex justify-between items-center mb-5 pb-4"
-          style={{ borderBottom: '1px solid rgba(244,236,216,0.08)' }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mesa.numero}
-              initial={{ opacity: 0, x: prefersReduced ? 0 : 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: prefersReduced ? 0 : -8 }}
-              transition={{ duration: 0.3, ease }}
-              className="flex items-center gap-2"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#3DAA68] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#3DAA68]" />
-              </span>
-              <span className="text-base font-medium" style={{ color: '#F4ECD8' }}>
-                Mesa {mesa.numero}
-              </span>
-            </motion.div>
-          </AnimatePresence>
-          <span className="text-xs tabular-nums" style={{ color: '#7A6A58' }}>{mesa.hora}</span>
-        </div>
+      {/* Wrapper 3D oscilante — desactivado en mobile y reduced motion */}
+      <motion.div
+        style={{ transformStyle: 'preserve-3d' }}
+        animate={prefersReduced || isMobile ? {} : {
+          rotateY: [-8, -4, -8],
+          rotateX: [4,   2,  4],
+          rotateZ: [-1, 0.5, -1],
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="relative py-12 px-6">
 
-        {/* Items con stagger */}
-        <AnimatePresence mode="wait">
+          {/* Card principal */}
           <motion.div
-            key={mesa.numero}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={{
-              hidden:  { opacity: 0 },
-              visible: { opacity: 1, transition: { staggerChildren: prefersReduced ? 0 : 0.07 } },
-              exit:    { opacity: 0 },
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease }}
+            className="relative z-10 overflow-hidden rounded-2xl border shadow-[0_30px_60px_rgba(0,0,0,0.5)] min-w-[340px] sm:min-w-[420px]"
+            style={{
+              background: '#141210',
+              borderColor: 'rgba(244,236,216,0.10)',
+              padding: '1.5rem 1.75rem',
             }}
-            className="space-y-3"
           >
-            {mesa.items.map((item, i) => (
-              <motion.div
-                key={`${mesa.numero}-${i}`}
-                variants={{
-                  hidden:  { opacity: 0, x: prefersReduced ? 0 : 8 },
-                  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease } },
-                  exit:    { opacity: 0, x: prefersReduced ? 0 : -8 },
-                }}
-                className="flex justify-between text-base"
-              >
-                <span style={{ color: '#9A8A78' }}>{item.nombre}</span>
-                <span className="tabular-nums" style={{ color: '#F4ECD8' }}>
-                  ${item.precio.toLocaleString('es-CO')}
-                </span>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+            <BorderBeam duration={6} />
 
-        {/* Total */}
-        <div
-          className="mt-5 pt-4 flex justify-between items-baseline"
-          style={{ borderTop: '1px solid rgba(244,236,216,0.08)' }}
-        >
-          <span className="text-xs uppercase tracking-wider" style={{ color: '#7A6A58' }}>Total</span>
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={mesa.total + '-' + mesa.numero}
-              initial={{ opacity: 0, y: prefersReduced ? 0 : 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: prefersReduced ? 0 : -8 }}
-              transition={{ duration: 0.3, ease }}
-              className="text-3xl font-medium tabular-nums"
-              style={{ color: '#C8903F' }}
+            {/* Header */}
+            <div
+              className="flex justify-between items-center mb-5 pb-4"
+              style={{ borderBottom: '1px solid rgba(244,236,216,0.08)' }}
             >
-              ${mesa.total.toLocaleString('es-CO')}
-            </motion.span>
-          </AnimatePresence>
-        </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={mesa.numero}
+                  initial={{ opacity: 0, x: prefersReduced ? 0 : 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: prefersReduced ? 0 : -8 }}
+                  transition={{ duration: 0.3, ease }}
+                  className="flex items-center gap-2"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#3DAA68] opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-[#3DAA68]" />
+                  </span>
+                  <span className="text-base font-medium" style={{ color: '#F4ECD8' }}>
+                    Mesa {mesa.numero}
+                  </span>
+                </motion.div>
+              </AnimatePresence>
+              <span className="text-xs tabular-nums" style={{ color: '#7A6A58' }}>{mesa.hora}</span>
+            </div>
 
-        {/* Métodos de pago */}
-        <div className="mt-5 grid grid-cols-3 gap-2">
-          <div
-            className="py-3 rounded-md text-center text-sm font-medium"
-            style={{ background: 'rgba(61,170,104,0.15)', color: '#3DAA68' }}
+            {/* Items con stagger */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={mesa.numero}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={{
+                  hidden:  { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: prefersReduced ? 0 : 0.07 } },
+                  exit:    { opacity: 0 },
+                }}
+                className="space-y-3"
+              >
+                {mesa.items.map((item, i) => (
+                  <motion.div
+                    key={`${mesa.numero}-${i}`}
+                    variants={{
+                      hidden:  { opacity: 0, x: prefersReduced ? 0 : 8 },
+                      visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease } },
+                      exit:    { opacity: 0, x: prefersReduced ? 0 : -8 },
+                    }}
+                    className="flex justify-between text-base"
+                  >
+                    <span style={{ color: '#9A8A78' }}>{item.nombre}</span>
+                    <span className="tabular-nums" style={{ color: '#F4ECD8' }}>
+                      ${item.precio.toLocaleString('es-CO')}
+                    </span>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Total con AnimatedNumber */}
+            <div
+              className="mt-5 pt-4 flex justify-between items-baseline"
+              style={{ borderTop: '1px solid rgba(244,236,216,0.08)' }}
+            >
+              <span className="text-xs uppercase tracking-wider" style={{ color: '#7A6A58' }}>Total</span>
+              <span className="text-3xl font-medium tabular-nums" style={{ color: '#C8903F' }}>
+                $<AnimatedNumber value={mesa.total} duration={800} />
+              </span>
+            </div>
+
+            {/* Métodos de pago */}
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              <div
+                className="py-3 rounded-md text-center text-sm font-medium"
+                style={{ background: 'rgba(61,170,104,0.15)', color: '#3DAA68' }}
+              >
+                Efectivo
+              </div>
+              <div
+                className="py-3 rounded-md text-center text-sm"
+                style={{ background: 'rgba(244,236,216,0.04)', color: '#9A8A78' }}
+              >
+                Tarjeta
+              </div>
+              <div
+                className="py-3 rounded-md text-center text-sm"
+                style={{ background: 'rgba(244,236,216,0.04)', color: '#9A8A78' }}
+              >
+                Nequi
+              </div>
+            </div>
+
+            {/* Botón Cobrar con shimmer esporádico cada ~8s */}
+            <motion.button
+              whileTap={prefersReduced ? {} : { scale: 0.98 }}
+              className="relative mt-4 w-full py-3 rounded-xl font-semibold font-body text-sm overflow-hidden"
+              style={{ background: '#C8903F', color: '#080706' }}
+            >
+              Cobrar ${mesa.total.toLocaleString('es-CO')}
+              {!prefersReduced && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%)',
+                  }}
+                  animate={{ x: ['-100%', '100%'] }}
+                  transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 6.8, ease: 'linear' }}
+                />
+              )}
+            </motion.button>
+          </motion.div>
+
+          {/* Tarjeta flotante: Caja cuadró (arriba derecha) */}
+          {/* Outer: float loop — Inner: entrance */}
+          <motion.div
+            className="absolute -top-3 -right-2 z-20"
+            animate={prefersReduced ? {} : { y: [0, -6, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }}
           >
-            Efectivo
-          </div>
-          <div
-            className="py-3 rounded-md text-center text-sm"
-            style={{ background: 'rgba(244,236,216,0.04)', color: '#9A8A78' }}
+            <motion.div
+              initial={{ opacity: 0, rotate: 8 }}
+              animate={{ opacity: 1, rotate: 5 }}
+              transition={{ duration: 0.7, delay: 0.4, ease }}
+              className="rounded-lg shadow-[0_8px_24px_rgba(200,144,63,0.25)]"
+              style={{
+                background: '#141210',
+                border: '1px solid rgba(200,144,63,0.40)',
+                padding: '0.625rem 1rem',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C8903F] opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#C8903F]" />
+                </span>
+                <span className="text-xs font-medium whitespace-nowrap" style={{ color: '#E4B878' }}>
+                  Caja cuadró ✓
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Tarjeta flotante: Ventas hoy (abajo izquierda) */}
+          {/* Outer: float loop (desincronizado 0.5s y ritmo distinto) — Inner: entrance */}
+          <motion.div
+            className="absolute -bottom-4 -left-3 z-20"
+            animate={prefersReduced ? {} : { y: [0, -4, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.6 }}
           >
-            Tarjeta
-          </div>
-          <div
-            className="py-3 rounded-md text-center text-sm"
-            style={{ background: 'rgba(244,236,216,0.04)', color: '#9A8A78' }}
-          >
-            Nequi
-          </div>
-        </div>
+            <motion.div
+              initial={{ opacity: 0, rotate: -8 }}
+              animate={{ opacity: 1, rotate: -5 }}
+              transition={{ duration: 0.7, delay: 0.6, ease }}
+              className="rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.6)]"
+              style={{
+                background: '#141210',
+                border: '1px solid rgba(244,236,216,0.10)',
+                padding: '0.75rem 1.25rem',
+              }}
+            >
+              <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#7A6A58' }}>
+                Ventas hoy
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-medium tabular-nums" style={{ color: '#F4ECD8' }}>
+                  $<AnimatedNumber value={487500} />
+                </span>
+                <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden>
+                  <path d="M5 1L8 5H2L5 1Z" fill="#3DAA68" />
+                </svg>
+                <span className="text-xs tabular-nums" style={{ color: '#3DAA68' }}>
+                  +<AnimatedNumber value={18} duration={1000} formatter={(n) => `${Math.round(n)}%`} />
+                </span>
+              </div>
+            </motion.div>
+          </motion.div>
 
-        {/* Botón Cobrar */}
-        <motion.button
-          whileTap={prefersReduced ? {} : { scale: 0.98 }}
-          className="mt-4 w-full py-3 rounded-xl font-semibold font-body text-sm"
-          style={{ background: '#C8903F', color: '#080706' }}
-        >
-          Cobrar ${mesa.total.toLocaleString('es-CO')}
-        </motion.button>
-      </motion.div>
-
-      {/* Tarjeta flotante: Caja cuadró (arriba derecha) */}
-      <motion.div
-        initial={{ opacity: 0, y: prefersReduced ? 0 : -12, rotate: prefersReduced ? 0 : 8 }}
-        animate={{ opacity: 1, y: 0, rotate: prefersReduced ? 0 : 5 }}
-        transition={{ duration: 0.7, delay: 0.4, ease }}
-        className="absolute -top-3 -right-2 z-20 rounded-lg shadow-[0_8px_24px_rgba(200,144,63,0.25)]"
-        style={{
-          background: '#141210',
-          border: '1px solid rgba(200,144,63,0.40)',
-          padding: '0.625rem 1rem',
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C8903F] opacity-75" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#C8903F]" />
-          </span>
-          <span className="text-xs font-medium whitespace-nowrap" style={{ color: '#E4B878' }}>
-            Caja cuadró ✓
-          </span>
         </div>
       </motion.div>
-
-      {/* Tarjeta flotante: Ventas hoy (abajo izquierda) */}
-      <motion.div
-        initial={{ opacity: 0, y: prefersReduced ? 0 : 12, rotate: prefersReduced ? 0 : -8 }}
-        animate={{ opacity: 1, y: 0, rotate: prefersReduced ? 0 : -5 }}
-        transition={{ duration: 0.7, delay: 0.6, ease }}
-        className="absolute -bottom-4 -left-3 z-20 rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.6)]"
-        style={{
-          background: '#141210',
-          border: '1px solid rgba(244,236,216,0.10)',
-          padding: '0.75rem 1.25rem',
-        }}
-      >
-        <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#7A6A58' }}>
-          Ventas hoy
-        </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-medium tabular-nums" style={{ color: '#F4ECD8' }}>
-            $<AnimatedNumber value={487500} />
-          </span>
-          <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden>
-            <path d="M5 1L8 5H2L5 1Z" fill="#3DAA68" />
-          </svg>
-          <span className="text-xs tabular-nums" style={{ color: '#3DAA68' }}>
-            +<AnimatedNumber value={18} duration={1000} formatter={(n) => `${Math.round(n)}%`} />
-          </span>
-        </div>
-      </motion.div>
-    </motion.div>
+    </div>
   );
 }
