@@ -101,7 +101,7 @@ export default function Hero() {
 
           {/* Columna izquierda */}
           <div>
-            {/* Badge */}
+            {/* Badge Colombia */}
             <div style={fadeUp(0)}>
               <span
                 className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6"
@@ -112,7 +112,7 @@ export default function Hero() {
                   letterSpacing: '0.12em',
                 }}
               >
-                🇨🇴 Hecho en Colombia · Para Colombia
+                🇨🇴 Hecho en Bogotá · Para Colombia
               </span>
             </div>
 
@@ -125,7 +125,7 @@ export default function Hero() {
                 lineHeight: 1.08,
                 fontWeight: 700,
                 letterSpacing: '-0.02em',
-                marginBottom: '0.75rem',
+                marginBottom: '1.25rem',
                 ...fadeUp(120),
               }}
             >
@@ -135,32 +135,18 @@ export default function Hero() {
                 className="text-[#C8903F]"
                 style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic' }}
                 cursorColor="#C8903F"
-                typingSpeed={80}
-                deletingSpeed={40}
-                pauseAfterTyping={1800}
+                typingSpeed={90}
+                deletingSpeed={50}
+                pauseAfterTyping={1600}
               />
               <span style={{ fontStyle: 'italic', color: '#C8903F' }}>.</span>
             </h1>
-
-            {/* Subtítulo */}
-            <p
-              className="font-body mb-5"
-              style={{
-                ...fadeUp(220),
-                color: '#F4ECD8',
-                fontSize: 'clamp(1.15rem, 2vw, 1.35rem)',
-                fontWeight: 500,
-                opacity: mounted ? 0.7 : 0,
-              }}
-            >
-              mezo se encarga del resto.
-            </p>
 
             {/* Descripción */}
             <p
               className="font-body mb-8"
               style={{
-                ...fadeUp(320),
+                ...fadeUp(240),
                 color: '#A89880',
                 fontSize: 'clamp(0.95rem, 1.6vw, 1.05rem)',
                 lineHeight: 1.7,
@@ -171,7 +157,7 @@ export default function Hero() {
             </p>
 
             {/* CTAs */}
-            <div style={fadeUp(440)}>
+            <div style={fadeUp(380)}>
               <div className="flex flex-col sm:flex-row items-start gap-4 mb-5">
                 <MagneticButton
                   as={Link}
