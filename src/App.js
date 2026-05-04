@@ -26,6 +26,8 @@ import SobreMezo from './pages/SobreMezo';
 import CentroAyuda from './pages/CentroAyuda';
 import EstadoSistema from './pages/EstadoSistema';
 import Equipo from './pages/Equipo';
+import TrabajaConNosotros from './pages/TrabajaConNosotros';
+import Blog from './pages/Blog';
 import NotFound from './pages/NotFound';
 import WhatsAppButton from './components/WhatsAppButton';
 
@@ -65,7 +67,9 @@ function App() {
             <Route path="/sobre"      element={<SobreMezo />} />
             <Route path="/ayuda"      element={<CentroAyuda />} />
             <Route path="/estado"     element={<EstadoSistema />} />
-            <Route path="/equipo"     element={<Equipo />} />
+            <Route path="/equipo"               element={<Equipo />} />
+            <Route path="/trabaja-con-nosotros" element={<TrabajaConNosotros />} />
+            <Route path="/blog"                 element={<Blog />} />
 
             {/* Protegidas */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

@@ -1440,7 +1440,7 @@ function Footer() {
         { label: 'Sobre mezo',          href: '/sobre' },
         { label: 'Conoce al equipo',    href: '/equipo' },
         { label: 'Blog',                href: '/blog' },
-        { label: 'Trabaja con nosotros',href: '/careers' },
+        { label: 'Trabaja con nosotros',href: '/trabaja-con-nosotros' },
       ],
     },
     {
