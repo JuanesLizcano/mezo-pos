@@ -113,7 +113,7 @@ function TarjetaPersona({ persona, delay }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4 }}
-      className="rounded-2xl p-6 transition-colors"
+      className="group rounded-2xl p-6 transition-colors"
       style={{ background: '#141210', border: '1px solid rgba(244,236,216,0.08)' }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,144,63,0.3)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(244,236,216,0.08)'; }}
@@ -148,22 +148,37 @@ function TarjetaPersona({ persona, delay }) {
 function Avatar({ persona }) {
   return (
     <div
-      className="w-20 h-20 rounded-2xl flex items-center justify-center text-[#080706] text-2xl font-semibold mb-5 overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, #C8903F 0%, #E4B878 100%)',
-        fontFamily: '"Fraunces", Georgia, serif',
-        fontStyle: 'italic',
-      }}
+      className="relative mb-5 rounded-xl overflow-hidden"
+      style={{ aspectRatio: '4/5', background: 'linear-gradient(135deg, #C8903F 0%, #E4B878 100%)' }}
     >
-      <img
-        src={persona.avatar}
-        alt={persona.nombre}
-        className="w-full h-full object-cover"
-        onError={e => {
-          e.currentTarget.style.display = 'none';
-          e.currentTarget.parentElement.textContent = persona.avatarFallback;
-        }}
-      />
+      {persona.avatar ? (
+        <>
+          {/* Imagen en color debajo */}
+          <img
+            src={persona.avatar}
+            alt={persona.nombre}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={e => { e.currentTarget.style.display = 'none'; }}
+          />
+          {/* Overlay B&N encima — se desvanece en hover de la card padre (group) */}
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-opacity duration-700 ease-out group-hover:opacity-0"
+            style={{
+              backgroundImage: `url(${persona.avatar})`,
+              filter: 'grayscale(100%) contrast(1.05) brightness(0.9)',
+            }}
+          />
+          {/* Viñeta sutil hacia abajo para integrar con el card oscuro */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080706]/40 via-transparent to-transparent pointer-events-none" />
+        </>
+      ) : (
+        <div
+          className="w-full h-full flex items-center justify-center text-[#080706] text-4xl font-semibold"
+          style={{ fontFamily: '"Fraunces", Georgia, serif', fontStyle: 'italic' }}
+        >
+          {persona.avatarFallback}
+        </div>
+      )}
     </div>
   );
 }
