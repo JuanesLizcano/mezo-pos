@@ -7,35 +7,35 @@ const ease = [0.22, 1, 0.36, 1];
 const EQUIPO = [
   {
     nombre: 'Juanes Lizcano',
-    rol: 'Founder & Producto',
-    bio: 'Antes de mezo lideraba un equipo de 9 personas en FOREX.com. Estudió electrónica en SENA. Cree que un buen POS debería verse como un buen mostrador: limpio y ordenado.',
+    rol: 'Founder & Diseño de producto',
+    bio: 'Diseña interfaces al nivel de las mejores startups del mundo. Su obsesión: que cada pixel tenga propósito. En mezo lidera la dirección de producto y la experiencia de usuario, con la convicción de que un POS bien diseñado debería sentirse como un buen mostrador — limpio, ordenado, listo para trabajar.',
     avatar: '/equipo/juanes.jpg',
     avatarFallback: 'JL',
     socials: {
       linkedin: 'https://linkedin.com/in/juaneslizcano',
-      instagram: 'juanlizcanom',
+      instagram: '@juanlizcanom',
     },
   },
   {
-    nombre: 'Manuel Mendoza',
-    rol: 'Backend & Infraestructura',
-    bio: 'Desarrollador con experiencia en Java Spring Boot y AWS. Construye lo que no se ve para que mezo no se caiga ni a las 11 p.m. de un viernes.',
+    nombre: 'Manuel Sánchez',
+    rol: 'Founding Engineer',
+    bio: 'Construye los sistemas que sostienen mezo en producción. Java, Spring Boot, infraestructura cloud — el músculo invisible que hace que todo funcione cuando un cliente cobra a las once de la noche un viernes. Pragmático, riguroso, y de los que dejan código que otros agradecen leer.',
     avatar: '/equipo/manuel.jpg',
-    avatarFallback: 'MM',
+    avatarFallback: 'MS',
     socials: {
-      linkedin: 'https://linkedin.com/in/manuel-mendoza',
+      linkedin: 'https://linkedin.com/in/manuel-sanchez',
       github: 'https://github.com/MDEVGitH',
     },
   },
   {
     nombre: 'Sofía Pulido',
-    rol: 'Co-founder & Operaciones',
-    bio: 'Co-owner de Tres Orquídeas. Conoce el oficio del café desde el otro lado del mostrador. Asegura que mezo entienda cómo se cobra de verdad en una cafetería colombiana.',
+    rol: 'Growth & Comunidad',
+    bio: 'La voz de mezo afuera. Lidera relaciones con clientes, contenido y la presencia de la marca en redes. Tiene un instinto particular para entender qué necesitan los dueños de cafetería antes de que ellos mismos lo sepan, y para traducir eso en un mensaje que conecta.',
     avatar: '/equipo/sofia.jpg',
     avatarFallback: 'SP',
     socials: {
       linkedin: 'https://linkedin.com/in/sofia-pulido',
-      instagram: 'tresorquideas',
+      instagram: '@tresorquideas',
     },
   },
 ];
@@ -69,11 +69,11 @@ export default function Equipo() {
               className="text-4xl md:text-5xl font-medium tracking-tight mb-4 leading-[1.1]"
               style={{ fontFamily: '"Fraunces", Georgia, serif' }}
             >
-              Las personas detrás de{' '}
-              <span className="italic text-[#C8903F]">mezo</span>.
+              Equipo pequeño.{' '}
+              <span className="italic text-[#C8903F]">Estándar alto.</span>
             </h1>
             <p className="text-[#9A8A78] text-lg">
-              Somos pocos. Eso nos permite responder rápido y construir con cuidado.
+              Tres personas con experiencia complementaria construyendo mezo desde cero. Decisiones rápidas, código limpio y diseño con criterio.
             </p>
           </motion.div>
 
@@ -136,7 +136,7 @@ function TarjetaPersona({ persona, delay }) {
           </SocialLink>
         )}
         {persona.socials.instagram && (
-          <SocialLink href={`https://instagram.com/${persona.socials.instagram}`}>
+          <SocialLink href={`https://instagram.com/${persona.socials.instagram.replace('@', '')}`}>
             <IconInstagram />
           </SocialLink>
         )}
